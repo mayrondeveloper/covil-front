@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Divider,
   Drawer,
   List,
   ListItem,
@@ -11,7 +10,15 @@ import { NavLink } from "react-router-dom";
 const menu = [
   {
     name: "Prêmio",
-    route: "/awards",
+    route: "/awards/create-awards",
+  },
+  {
+    name: "Categoria",
+    route: "/awards/create-category",
+  },
+  {
+    name: "Votos",
+    route: "/awards/create-votes",
   },
 ];
 
@@ -67,7 +74,7 @@ export default function DrawerAwards() {
       </Typography>
 
       <List>
-        {menu.map((m, index) => (
+        {menu.map((m) => (
           <ListItem key={m.name} disablePadding>
             <NavLink
               to={m.route}

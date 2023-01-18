@@ -23,7 +23,6 @@ function createData(
     return { id, name, description, image, created_by, year, excluded };
 }
 
-
 export default function EnchancedTableAwards({data, setAwards}: any) {
 
     const [rows, setRows] = useState([]);

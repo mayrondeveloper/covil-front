@@ -6,13 +6,12 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import { create, fetch } from "../../../services/awards-service/awards-service";
+import { create, fetch } from "../../../services/votes/votes-service";
 import {useState, useCallback, useEffect} from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
-import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 
 const defaultValues = {
     name: "Dragão de ouro",
@@ -20,25 +19,21 @@ const defaultValues = {
     description: "Melhor prêmio de divinópolis",
     image: "",
     year: "2023",
-    games: [],
-    participants: [],
-    awards_categories: [],
 }
 
-export const CreateAwards = () => {
+export const Votes = () => {
     const [resetField, setResetField] = useState(false);
     const [, setLoading] = useState(false);
-    const [categoriesSelecionadas, setCategoriesSelecionadas] = useState([]);
+
     const sendAward = (data: any) => {
         setLoading(true);
-        console.log(data)
         create(data)
-            .then((r) => {
+            .then(() => {
                 fetchAwards();
                 resetAsyncForm();
                 setResetField(!resetField);
             })
-            .catch((error) => setLoading(false));
+            .catch(() => setLoading(false));
     };
 
     // FORM
@@ -72,7 +67,7 @@ export const CreateAwards = () => {
                         
                         sx={{ fontFamily: "Roboto", fontWeight: 600 }}
                     >
-                        Cadastrar prêmio
+                        Cadastrar voto
                     </Typography>
 
                     <Box sx={{ marginTop: 4 }}>
@@ -157,14 +152,20 @@ export const CreateAwards = () => {
                                         </Typography>
                                     )}
                                 </Box>
+                            </Stack>
+                            <Stack
+                                sx={{marginTop: 4}}
+                                direction={{ xs: "column", sm: "row" }}
+                                spacing={{ xs: 1, sm: 2, md: 4 }}
+                            >
                                 <Box sx={{ width: "100%" }}>
                                     <Controller
                                         render={({ field }: any) => (
                                             <TextField size={"small"}
-                                                       sx={{ width: "100%" }}
-                                                       label="Imagem"
-                                                       variant="outlined"
-                                                       {...field}
+                                                sx={{ width: "100%" }}
+                                                label="Imagem/Logo"
+                                                variant="outlined"
+                                                {...field}
                                             />
                                         )}
                                         name="image"
@@ -181,18 +182,12 @@ export const CreateAwards = () => {
                                         </Typography>
                                     )}
                                 </Box>
-                            </Stack>
-                            <Stack
-                                sx={{marginTop: 4}}
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={{ xs: 1, sm: 2, md: 4 }}
-                            >
                                 <Box sx={{ width: "100%" }}>
                                     <Controller
                                         render={({ field }: any) => (
                                             <TextField size={"small"}
                                                        sx={{ width: "100%" }}
-                                                       label="Ano"
+                                                       label="Ano do prêmio"
                                                        variant="outlined"
                                                        {...field}
                                             />
@@ -211,32 +206,6 @@ export const CreateAwards = () => {
                                         </Typography>
                                     )}
                                 </Box>
-                                <Asynchronous
-                                    control={control}
-                                    setCategoriesSelecionadas={setCategoriesSelecionadas}
-                                    resetField={resetField}
-                                    name={'awards_categories'}
-                                    id={'awards_categories'}
-                                    label={'Categorias'}
-                                />
-
-                                <Asynchronous
-                                    name={'games'}
-                                    id={'games'}
-                                    label={'Jogos participantes'}
-                                    control={control}
-                                    setCategoriesSelecionadas={setCategoriesSelecionadas}
-                                    resetField={resetField}
-                                />
-
-                                <Asynchronous
-                                    name={'participants'}
-                                    id={'participants'}
-                                    label={'Participantes'}
-                                    control={control}
-                                    setCategoriesSelecionadas={setCategoriesSelecionadas}
-                                    resetField={resetField}
-                                />
                             </Stack>
 
                             <Box sx={{ marginTop: 2 }}>
