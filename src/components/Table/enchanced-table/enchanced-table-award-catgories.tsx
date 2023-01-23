@@ -7,63 +7,41 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { useEffect, useState, useCallback } from "react";
+import {
+  remove,
+  fetch,
+} from "../../../services/awards-categories-service/awards-categories-service";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { styled } from "@mui/material";
-import { fetch, remove } from "../../../services/awards-service/awards-service";
 
 function createData(
   id: string,
   name: string,
   description: string,
-  image: string,
-  created_by: string,
-  year: string,
-  categories: any,
   excluded: string
 ) {
-  return {
-    id,
-    name,
-    description,
-    image,
-    created_by,
-    year,
-    categories,
-    excluded,
-  };
+  return { id, name, description, excluded };
 }
 
-export default function EnchancedTableAwards({ data, setAwards }: any) {
+export default function EnchancedTableAwardCategories({ data, setData }: any) {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    const newData = data?.map((award: any): any => {
-      const awards_categories = award?.awards_categories.map(
-        (categories: any) => categories?.categories?.name
-      );
-      return createData(
-        award.id,
-        award.name,
-        award.description,
-        award.image,
-        award.created_by,
-        award.year,
-        awards_categories.join(", "),
-        "X"
-      );
+    const newData = data?.map((dt: any): any => {
+      return createData(dt.id, dt.name, dt.description, "X");
     });
     setRows(newData);
   }, [data]);
 
-  const fetchAwards = useCallback(() => {
+  const fetchCategories = useCallback(() => {
     fetch()
-      .then((r: any) => setAwards(r.data))
+      .then((r: any) => setData(r.data))
       .catch((error: Error) => console.log(error));
   }, []);
 
-  const removeAward = (id: string) => {
+  const excluirJogo = (id: string) => {
     remove(id)
-      .then(() => fetchAwards())
+      .then(() => fetchCategories())
       .catch((error: Error) => console.log(error));
   };
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -81,12 +59,8 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
       <Table sx={{ minWidth: 650 }} size="small" aria-label="simple table">
         <TableHead>
           <TableRow>
-            <StyledTableCell>Prêmio</StyledTableCell>
+            <StyledTableCell>Nome</StyledTableCell>
             <StyledTableCell align="right">Descrição</StyledTableCell>
-            {/*<StyledTableCell align="right">Imagem</StyledTableCell>*/}
-            <StyledTableCell align="right">Criado por</StyledTableCell>
-            <StyledTableCell align="right">Ano do Prêmio</StyledTableCell>
-            <StyledTableCell align="right">Categorias</StyledTableCell>
             <StyledTableCell align="right">Excluir</StyledTableCell>
           </TableRow>
         </TableHead>
@@ -99,15 +73,11 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
               <TableCell component="th" scope="row">
                 {row.name}
               </TableCell>
-              <TableCell align="right">{row.description}</TableCell>
-              {/*<TableCell align="right">{row.image}</TableCell>*/}
-              <TableCell align="right">{row.created_by}</TableCell>
-              <TableCell align="right">{row.year}</TableCell>
-              <TableCell align="right">{row.categories}</TableCell>
+              <TableCell align={"right"}>{row.description}</TableCell>
               <TableCell
                 sx={{ cursor: "pointer" }}
                 align="right"
-                onClick={() => removeAward(row.id)}
+                onClick={() => excluirJogo(row.id)}
               >
                 <DeleteForeverRoundedIcon color={"warning"} />
               </TableCell>

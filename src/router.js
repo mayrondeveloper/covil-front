@@ -10,8 +10,11 @@ import { CreateDesigners } from "./pages/designers/create/create-designers";
 import { HomePage } from "./pages/home/home-page";
 import { CreateAwards } from "./pages/awards/create/create-awards";
 import { CreateAwardCategories } from "./pages/award-categories/create/create-award-categories";
-import {Votes} from "./pages/votes/create/votes";
-import {DragaoDeOuro} from "./pages/dragao-de-ouro/create/dragao-de-ouro";
+import { Votes } from "./pages/votes/create/votes";
+import { DragaoDeOuro } from "./pages/dragao-de-ouro/create/dragao-de-ouro";
+import { CreateAwardParticipants } from "./pages/award-participants/create/create-award-participants";
+import { ViewAwardAndCategory } from "./pages/awards/view/view-award-and-categories";
+import { ViewAwardAndCategoryPlaces } from "./pages/awards/view/view-award-and-categories-places";
 
 export const router = createBrowserRouter([
   {
@@ -61,5 +64,17 @@ export const router = createBrowserRouter([
   {
     path: "/awards/create-votes",
     element: <Votes />,
+  },
+  {
+    path: "/awards/create-participants",
+    element: <CreateAwardParticipants />,
+  },
+  {
+    path: "/awards/view-award-and-category",
+    element: <ViewAwardAndCategory />,
+  },
+  {
+    path: "/awards/view-award-and-category-places",
+    element: <ViewAwardAndCategoryPlaces />,
   },
 ]);

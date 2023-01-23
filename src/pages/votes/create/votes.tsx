@@ -1,236 +1,259 @@
 import {
-    Box,
-    Button,
-    Paper,
-    Stack,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 import { create, fetch } from "../../../services/votes/votes-service";
-import {useState, useCallback, useEffect} from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerAwards from "../../../components/Drawer/awards";
-import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
+import EnchancedTableVotes from "../../../components/Table/enchanced-table/enchanced-table-votes";
+import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
+import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
+import { fetch as fetchAllGames } from "../../../services/game-service/game-service";
+import { fetch as fetchAllParticipants } from "../../../services/participants-service/participants-service";
+import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
 
 const defaultValues = {
-    name: "Dragão de ouro",
-    created_by: "",
-    description: "Melhor prêmio de divinópolis",
-    image: "",
-    year: "2023",
-}
+  place: "1",
+  participant: [],
+  category: [],
+  game: [],
+  id_award: [],
+};
 
 export const Votes = () => {
-    const [resetField, setResetField] = useState(false);
-    const [, setLoading] = useState(false);
+  const [resetField, setResetField] = useState(false);
+  const [, setLoading] = useState(false);
+  const [awards, setAwards] = useState([]);
+  const [awardsSelecionadas, setAwardsSelecionadas] = useState<any>([]);
+  const [categories, setCategories] = useState([]);
+  const [categoriesSelecionadas, setCategoriesSelecionadas] = useState<any>([]);
+  const [jogos, setJogos] = useState([]);
+  const [jogosSelecionados, setJogosSelecionados] = useState<any>([]);
+  const [participantes, setParticipantes] = useState([]);
+  const [participantesSelecionados, setParticipantesSelecionados] =
+    useState<any>([]);
 
-    const sendAward = (data: any) => {
-        setLoading(true);
-        create(data)
-            .then(() => {
-                fetchAwards();
-                resetAsyncForm();
-                setResetField(!resetField);
-            })
-            .catch(() => setLoading(false));
+  const sendAward = (data: any) => {
+    setLoading(true);
+    const newData = {
+      place: data.place,
+      id_vote: participantesSelecionados.id,
+      id_category: categoriesSelecionadas.id,
+      id_game: jogosSelecionados.id,
+      id_award: awardsSelecionadas.id,
     };
+    create(newData)
+      .then(() => {
+        fetchVotes();
+        resetAsyncForm();
+        setResetField(!resetField);
+      })
+      .catch(() => setLoading(false));
+  };
 
-    // FORM
-    const [awards, setAwards] = useState(null);
+  useEffect(() => {
+    if (awards.length) return;
+    fetchAwards();
+  }, []);
 
-    const { handleSubmit, control, formState, reset } = useForm({defaultValues});
-    const { errors } = formState;
+  const fetchAwards = useCallback(() => {
+    fetchAllAwards()
+      .then((r: any) => {
+        setAwards(r.data);
+      })
+      .catch((error: Error) => console.log(error));
+  }, []);
 
-    const resetAsyncForm = useCallback(async () => reset(defaultValues), [reset]);
+  useEffect(() => {
+    if (categories.length) return;
+    fetchCategory();
+  }, []);
 
-    useEffect(() => {
-        if (awards) return;
-        fetchAwards();
-    }, [awards]);
+  const fetchCategory = useCallback(() => {
+    fetchCategories()
+      .then((r: any) => {
+        setCategories(r.data);
+      })
+      .catch((error: Error) => console.log(error));
+  }, []);
 
-    const fetchAwards = useCallback(() => {
-        fetch()
-            .then((r: any) => setAwards(r.data))
-            .catch((error: Error) => console.log(error));
-    }, []);
+  useEffect(() => {
+    if (jogos.length) return;
+    fetchGames();
+  }, []);
 
-    return (
-        <>
-            <ResponsiveAppBar />
-            <Box sx={{ padding: 0, display: "flex", flexDirection: "row", height: 'calc(100vh - 69px)' }}>
-                <DrawerAwards />
-                <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
+  const fetchGames = useCallback(() => {
+    fetchAllGames()
+      .then((r: any) => {
+        setJogos(r.data);
+      })
+      .catch((error: Error) => console.log(error));
+  }, []);
+
+  useEffect(() => {
+    if (participantes.length) return;
+    fetchParticipants();
+  }, []);
+
+  const fetchParticipants = useCallback(() => {
+    fetchAllParticipants()
+      .then((r: any) => {
+        setParticipantes(r.data);
+      })
+      .catch((error: Error) => console.log(error));
+  }, []);
+
+  // FORM
+  const [data, setData] = useState(null);
+
+  const { handleSubmit, control, formState, reset } = useForm({
+    defaultValues,
+  });
+  const { errors } = formState;
+
+  const resetAsyncForm = useCallback(async () => reset(defaultValues), [reset]);
+
+  useEffect(() => {
+    if (data) return;
+    fetchVotes();
+  }, [data]);
+
+  const fetchVotes = useCallback(() => {
+    fetch()
+      .then((r: any) => setData(r.data))
+      .catch((error: Error) => console.log(error));
+  }, []);
+
+  return (
+    <>
+      <ResponsiveAppBar />
+      <Box
+        sx={{
+          padding: 0,
+          display: "flex",
+          flexDirection: "row",
+          height: "calc(100vh - 69px)",
+        }}
+      >
+        <DrawerAwards />
+        <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
+          <Typography
+            variant="h5"
+            component="h1"
+            sx={{ fontFamily: "Roboto", fontWeight: 600 }}
+          >
+            Cadastrar voto
+          </Typography>
+
+          <Box sx={{ marginTop: 4 }}>
+            <form
+              onSubmit={handleSubmit((data) => {
+                sendAward(data);
+              })}
+            >
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 1, sm: 2, md: 4 }}
+              >
+                <Box sx={{ width: "100%" }}>
+                  <Controller
+                    render={({ field }: any) => (
+                      <TextField
+                        size={"small"}
+                        sx={{ width: "100%" }}
+                        label="Colocação"
+                        variant="outlined"
+                        {...field}
+                      />
+                    )}
+                    name="place"
+                    rules={{ required: true }}
+                    control={control}
+                  />
+                  {errors.place?.type === "required" && (
                     <Typography
-                        variant="h5"
-                        component="h1"
-                        
-                        sx={{ fontFamily: "Roboto", fontWeight: 600 }}
+                      role="alert"
+                      color={"error"}
+                      sx={{ fontSize: "12px" }}
                     >
-                        Cadastrar voto
+                      Campo obrigatório
                     </Typography>
+                  )}
+                </Box>
+                <Asynchronous
+                  multiple={false}
+                  control={control}
+                  data={awards}
+                  setData={setAwardsSelecionadas}
+                  resetField={resetField}
+                  name={"id_award"}
+                  id={"id_award"}
+                  label={"Prêmio"}
+                />
+                <Asynchronous
+                  multiple={false}
+                  control={control}
+                  data={categories}
+                  setData={setCategoriesSelecionadas}
+                  resetField={resetField}
+                  name={"category"}
+                  id={"category"}
+                  label={"Categoria"}
+                />
+                <Asynchronous
+                  multiple={false}
+                  control={control}
+                  data={jogos}
+                  setData={setJogosSelecionados}
+                  resetField={resetField}
+                  name={"game"}
+                  id={"game"}
+                  label={"Jogo"}
+                />
+                <Asynchronous
+                  multiple={false}
+                  control={control}
+                  data={participantes}
+                  setData={setParticipantesSelecionados}
+                  resetField={resetField}
+                  name={"participant"}
+                  id={"participant"}
+                  label={"Participantes"}
+                />
+              </Stack>
 
-                    <Box sx={{ marginTop: 4 }}>
-                        <form
-                            onSubmit={handleSubmit((data) => {
-                                sendAward(data);
-                            })}
-                        >
-                            <Stack
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={{ xs: 1, sm: 2, md: 4 }}
-                            >
-                                <Box sx={{ width: "100%" }}>
-                                    <Controller
-                                        render={({ field }: any) => (
-                                            <TextField size={"small"} 
-                                                sx={{ width: "100%" }}
-                                                label="Nome do prêmio"
-                                                variant="outlined"
-                                                {...field}
-                                            />
-                                        )}
-                                        name="name"
-                                        rules={{ required: true }}
-                                        control={control}
-                                    />
-                                    {errors.name?.type === "required" && (
-                                        <Typography
-                                            role="alert"
-                                            color={'error'}
-                                            sx={{ fontSize: "12px" }}
-                                        >
-                                            Campo obrigatório
-                                        </Typography>
-                                    )}
-                                </Box>
-                                <Box sx={{ width: "100%" }}>
-                                    <Controller
-                                        render={({ field }: any) => (
-                                            <TextField size={"small"}
-                                                       sx={{ width: "100%" }}
-                                                       label="Criado por"
-                                                       variant="outlined"
-                                                       {...field}
-                                            />
-                                        )}
-                                        name="created_by"
-                                        rules={{ required: true }}
-                                        control={control}
-                                    />
-                                    {errors.created_by?.type === "required" && (
-                                        <Typography
-                                            role="alert"
-                                            color={'error'}
-                                            sx={{ fontSize: "12px" }}
-                                        >
-                                            Campo obrigatório
-                                        </Typography>
-                                    )}
-                                </Box>
-                                <Box sx={{ width: "100%" }}>
-                                    <Controller
-                                        render={({ field }: any) => (
-                                            <TextField size={"small"}
-                                                       sx={{ width: "100%" }}
-                                                       label="Descrição"
-                                                       variant="outlined"
-                                                       {...field}
-                                            />
-                                        )}
-                                        name="description"
-                                        rules={{ required: true }}
-                                        control={control}
-                                    />
-                                    {errors.description?.type === "required" && (
-                                        <Typography
-                                            role="alert"
-                                            color={'error'}
-                                            sx={{ fontSize: "12px" }}
-                                        >
-                                            Campo obrigatório
-                                        </Typography>
-                                    )}
-                                </Box>
-                            </Stack>
-                            <Stack
-                                sx={{marginTop: 4}}
-                                direction={{ xs: "column", sm: "row" }}
-                                spacing={{ xs: 1, sm: 2, md: 4 }}
-                            >
-                                <Box sx={{ width: "100%" }}>
-                                    <Controller
-                                        render={({ field }: any) => (
-                                            <TextField size={"small"}
-                                                sx={{ width: "100%" }}
-                                                label="Imagem/Logo"
-                                                variant="outlined"
-                                                {...field}
-                                            />
-                                        )}
-                                        name="image"
-                                        rules={{ required: true }}
-                                        control={control}
-                                    />
-                                    {errors.image?.type === "required" && (
-                                        <Typography
-                                            role="alert"
-                                            color={'error'}
-                                            sx={{ fontSize: "12px" }}
-                                        >
-                                            Campo obrigatório
-                                        </Typography>
-                                    )}
-                                </Box>
-                                <Box sx={{ width: "100%" }}>
-                                    <Controller
-                                        render={({ field }: any) => (
-                                            <TextField size={"small"}
-                                                       sx={{ width: "100%" }}
-                                                       label="Ano do prêmio"
-                                                       variant="outlined"
-                                                       {...field}
-                                            />
-                                        )}
-                                        name="year"
-                                        rules={{ required: true }}
-                                        control={control}
-                                    />
-                                    {errors.year?.type === "required" && (
-                                        <Typography
-                                            role="alert"
-                                            color={'error'}
-                                            sx={{ fontSize: "12px" }}
-                                        >
-                                            Campo obrigatório
-                                        </Typography>
-                                    )}
-                                </Box>
-                            </Stack>
+              <Box sx={{ marginTop: 2 }}>
+                <Button type="submit" variant="contained" color={"secondary"}>
+                  Enviar
+                </Button>
+              </Box>
+            </form>
+            <Paper elevation={0} sx={{ marginTop: 6, width: "100%" }}>
+              <Typography
+                variant="h5"
+                component="h1"
+                sx={{ fontFamily: "Roboto", fontWeight: 600 }}
+              >
+                Votos
+              </Typography>
 
-                            <Box sx={{ marginTop: 2 }}>
-                                <Button type="submit" variant="contained" color={'secondary'}>
-                                    Enviar
-                                </Button>
-                            </Box>
-                        </form>
-                        <Paper elevation={0} sx={{ marginTop: 6,  width: "100%" }}>
-                            <Typography
-                                variant="h5"
-                                component="h1"
-
-                                sx={{ fontFamily: "Roboto", fontWeight: 600 }}
-                            >
-                                Prêmios
-                            </Typography>
-
-                            <Box sx={{width: "100%" }}>
-                                <EnchancedTableAwards data={awards} setAwards={setAwards} refresh={resetField}/>
-                            </Box>
-                        </Paper>
-                    </Box>
-                </Paper>
-            </Box>
-        </>
-    );
+              <Box sx={{ width: "100%" }}>
+                <EnchancedTableVotes
+                  data={data}
+                  setData={setData}
+                  refresh={resetField}
+                />
+              </Box>
+            </Paper>
+          </Box>
+        </Paper>
+      </Box>
+    </>
+  );
 };

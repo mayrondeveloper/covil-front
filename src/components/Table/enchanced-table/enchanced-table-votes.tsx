@@ -9,46 +9,32 @@ import Paper from "@mui/material/Paper";
 import { useEffect, useState, useCallback } from "react";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { styled } from "@mui/material";
-import { fetch, remove } from "../../../services/awards-service/awards-service";
+import { fetch, remove } from "../../../services/votes/votes-service";
 
 function createData(
   id: string,
-  name: string,
-  description: string,
-  image: string,
-  created_by: string,
-  year: string,
-  categories: any,
+  award: string,
+  place: string,
+  participant: string,
+  category: string,
+  game: string,
   excluded: string
 ) {
-  return {
-    id,
-    name,
-    description,
-    image,
-    created_by,
-    year,
-    categories,
-    excluded,
-  };
+  return { id, award, place, participant, category, game, excluded };
 }
 
-export default function EnchancedTableAwards({ data, setAwards }: any) {
+export default function EnchancedTableVotes({ data, setData }: any) {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    const newData = data?.map((award: any): any => {
-      const awards_categories = award?.awards_categories.map(
-        (categories: any) => categories?.categories?.name
-      );
+    const newData = data?.map((dt: any): any => {
       return createData(
-        award.id,
-        award.name,
-        award.description,
-        award.image,
-        award.created_by,
-        award.year,
-        awards_categories.join(", "),
+        dt.id,
+        dt.award.name,
+        dt.place,
+        dt.participant.name,
+        dt.category.name,
+        dt.game.name,
         "X"
       );
     });
@@ -57,7 +43,7 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
 
   const fetchAwards = useCallback(() => {
     fetch()
-      .then((r: any) => setAwards(r.data))
+      .then((r: any) => setData(r.data))
       .catch((error: Error) => console.log(error));
   }, []);
 
@@ -82,11 +68,10 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
         <TableHead>
           <TableRow>
             <StyledTableCell>Prêmio</StyledTableCell>
-            <StyledTableCell align="right">Descrição</StyledTableCell>
-            {/*<StyledTableCell align="right">Imagem</StyledTableCell>*/}
-            <StyledTableCell align="right">Criado por</StyledTableCell>
-            <StyledTableCell align="right">Ano do Prêmio</StyledTableCell>
-            <StyledTableCell align="right">Categorias</StyledTableCell>
+            <StyledTableCell align="right">Posição</StyledTableCell>
+            <StyledTableCell align="right">Participante</StyledTableCell>
+            <StyledTableCell align="right">Categoria</StyledTableCell>
+            <StyledTableCell align="right">Jogo</StyledTableCell>
             <StyledTableCell align="right">Excluir</StyledTableCell>
           </TableRow>
         </TableHead>
@@ -97,13 +82,12 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
               <TableCell component="th" scope="row">
-                {row.name}
+                {row.award}
               </TableCell>
-              <TableCell align="right">{row.description}</TableCell>
-              {/*<TableCell align="right">{row.image}</TableCell>*/}
-              <TableCell align="right">{row.created_by}</TableCell>
-              <TableCell align="right">{row.year}</TableCell>
-              <TableCell align="right">{row.categories}</TableCell>
+              <TableCell align="right">{row.place}°</TableCell>
+              <TableCell align="right">{row.participant}</TableCell>
+              <TableCell align="right">{row.category}</TableCell>
+              <TableCell align="right">{row.game}</TableCell>
               <TableCell
                 sx={{ cursor: "pointer" }}
                 align="right"

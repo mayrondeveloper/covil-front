@@ -9,19 +9,23 @@ import {
 import {
   create,
   fetch,
-} from "../../../services/awards-categories-service/awards-categories-service";
+} from "../../../services/participants-service/participants-service";
 import { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerAwards from "../../../components/Drawer/awards";
-import EnchancedTableAwardCategories from "../../../components/Table/enchanced-table/enchanced-table-award-catgories";
+import EnchancedTableAwardParticipants from "../../../components/Table/enchanced-table/enchanced-table-award-participants";
 
 const defaultValues = {
   name: "",
-  description: "",
+  description: "descrição",
+  image: "imagem",
+  instagram: "insta",
+  site: "site",
+  url: "url",
 };
 
-export const CreateAwardCategories = () => {
+export const CreateAwardParticipants = () => {
   const [resetField, setResetField] = useState(false);
   const [, setLoading] = useState(false);
 
@@ -75,7 +79,7 @@ export const CreateAwardCategories = () => {
             component="h1"
             sx={{ fontFamily: "Roboto", fontWeight: 600 }}
           >
-            Cadastrar categoria do prêmio
+            Cadastrar participante
           </Typography>
 
           <Box sx={{ marginTop: 4 }}>
@@ -94,7 +98,7 @@ export const CreateAwardCategories = () => {
                       <TextField
                         size={"small"}
                         sx={{ width: "100%" }}
-                        label="Nome da categoria"
+                        label="Nome do participante"
                         variant="outlined"
                         {...field}
                       />
@@ -119,16 +123,16 @@ export const CreateAwardCategories = () => {
                       <TextField
                         size={"small"}
                         sx={{ width: "100%" }}
-                        label="Descrição"
+                        label="Image"
                         variant="outlined"
                         {...field}
                       />
                     )}
-                    name="description"
+                    name="image"
                     rules={{ required: true }}
                     control={control}
                   />
-                  {errors.description?.type === "required" && (
+                  {errors.image?.type === "required" && (
                     <Typography
                       role="alert"
                       color={"error"}
@@ -139,6 +143,89 @@ export const CreateAwardCategories = () => {
                   )}
                 </Box>
               </Stack>
+
+              <Stack
+                sx={{ marginTop: 4 }}
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 1, sm: 2, md: 4 }}
+              >
+                <Box sx={{ width: "100%" }}>
+                  <Controller
+                    render={({ field }: any) => (
+                      <TextField
+                        size={"small"}
+                        sx={{ width: "100%" }}
+                        label="Instagram"
+                        variant="outlined"
+                        {...field}
+                      />
+                    )}
+                    name="instagram"
+                    rules={{ required: true }}
+                    control={control}
+                  />
+                  {errors.instagram?.type === "required" && (
+                    <Typography
+                      role="alert"
+                      color={"error"}
+                      sx={{ fontSize: "12px" }}
+                    >
+                      Campo obrigatório
+                    </Typography>
+                  )}
+                </Box>
+                <Box sx={{ width: "100%" }}>
+                  <Controller
+                    render={({ field }: any) => (
+                      <TextField
+                        size={"small"}
+                        sx={{ width: "100%" }}
+                        label="Site"
+                        variant="outlined"
+                        {...field}
+                      />
+                    )}
+                    name="site"
+                    rules={{ required: true }}
+                    control={control}
+                  />
+                  {errors.site?.type === "required" && (
+                    <Typography
+                      role="alert"
+                      color={"error"}
+                      sx={{ fontSize: "12px" }}
+                    >
+                      Campo obrigatório
+                    </Typography>
+                  )}
+                </Box>
+                <Box sx={{ width: "100%" }}>
+                  <Controller
+                    render={({ field }: any) => (
+                      <TextField
+                        size={"small"}
+                        sx={{ width: "100%" }}
+                        label="URL"
+                        variant="outlined"
+                        {...field}
+                      />
+                    )}
+                    name="url"
+                    rules={{ required: true }}
+                    control={control}
+                  />
+                  {errors.url?.type === "required" && (
+                    <Typography
+                      role="alert"
+                      color={"error"}
+                      sx={{ fontSize: "12px" }}
+                    >
+                      Campo obrigatório
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+
               <Box sx={{ marginTop: 2 }}>
                 <Button type="submit" variant="contained" color={"secondary"}>
                   Enviar
@@ -155,7 +242,7 @@ export const CreateAwardCategories = () => {
               </Typography>
 
               <Box sx={{ width: "100%" }}>
-                <EnchancedTableAwardCategories
+                <EnchancedTableAwardParticipants
                   data={data}
                   setData={setData}
                   refresh={resetField}
