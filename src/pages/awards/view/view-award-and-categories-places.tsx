@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Divider, Paper, Stack, Typography } from "@mui/material";
 import { findAllByAwardAndCategory } from "../../../services/game-service/game-service";
 import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -8,6 +8,9 @@ import Asynchronous from "../../../components/Form/Input/asynchronous/asynchrono
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
 import EnchancedTableAwardsCategoriesPlace from "../../../components/Table/enchanced-table/enchanced-table-awards-categories-place";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
+import DataGridDefaultWiners from "./DataGridWiners";
+import CardGame from "../../../components/CardGame/CardGame";
 
 const defaultValues = {
   place: "1",
@@ -63,7 +66,7 @@ export const ViewAwardAndCategoryPlaces = () => {
   }, []);
 
   // FORM
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([] || null);
 
   const { handleSubmit, control, formState, reset } = useForm({
     defaultValues,
@@ -72,18 +75,37 @@ export const ViewAwardAndCategoryPlaces = () => {
 
   const resetAsyncForm = useCallback(async () => reset(defaultValues), [reset]);
 
+  const [colocation, setColocation] = useState<any>([] || null);
+
+  useEffect(() => {
+    const row = data?.map((dt: any) => {
+      const votes = dt.votes.map(
+        (vote: any) => `${vote.place}° (${vote.participant.name})`
+      );
+      const totalVotos = dt.votes.map((vote: any) => Number(vote.value_vote));
+      let sum = totalVotos.reduce(function (soma: number, i: number) {
+        return soma + i;
+      });
+      return {
+        id: dt.id,
+        game: dt.name,
+        votes: votes.join(" , "),
+        total: sum,
+      };
+    });
+    setColocation(row.sort((a, b) => b.total - a.total).slice(0, 3));
+  }, [data]);
+
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerAwards />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -100,6 +122,7 @@ export const ViewAwardAndCategoryPlaces = () => {
               })}
             >
               <Stack
+                // sx={{ maxWidth: 600 }}
                 direction={{ xs: "column", sm: "row" }}
                 spacing={{ xs: 1, sm: 2, md: 4 }}
               >
@@ -135,12 +158,37 @@ export const ViewAwardAndCategoryPlaces = () => {
                 </Box>
               </Stack>
             </form>
+            <Divider sx={{ margin: "20px 0", opacity: "0.4" }} />
+
+            <Box
+              sx={{ display: "flex", gap: "15px", marginTop: 6, width: "100%" }}
+            >
+              {colocation &&
+                colocation.map((jogos: any, index: number) => {
+                  return (
+                    <CardGame
+                      colocacao={index + 1}
+                      jogo={jogos.game}
+                      index={index}
+                    />
+                  );
+                })}
+            </Box>
+
+            <Divider sx={{ marginTop: 6, marginBottom: 6, opacity: "0.4" }} />
+
             {data ? (
               <Paper elevation={0} sx={{ marginTop: 6, width: "100%" }}>
                 <Box sx={{ width: "100%" }}>
-                  <EnchancedTableAwardsCategoriesPlace
+                  {/*<EnchancedTableAwardsCategoriesPlace*/}
+                  {/*  data={data}*/}
+                  {/*  setData={setData}*/}
+                  {/*  refresh={resetField}*/}
+                  {/*/>*/}
+
+                  <DataGridDefaultWiners
                     data={data}
-                    setData={setData}
+                    setAwards={setData}
                     refresh={resetField}
                   />
                 </Box>
@@ -151,6 +199,6 @@ export const ViewAwardAndCategoryPlaces = () => {
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

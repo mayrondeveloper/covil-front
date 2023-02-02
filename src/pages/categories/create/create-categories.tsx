@@ -11,6 +11,7 @@ import { useState, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerCovil from "../../../components/Drawer/drawer";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 
 export const CreateCategories = () => {
   const [resetField, setResetField] = useState(false);
@@ -42,17 +43,15 @@ export const CreateCategories = () => {
   }, [reset]);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerCovil />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -108,6 +107,6 @@ export const CreateCategories = () => {
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

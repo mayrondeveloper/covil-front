@@ -22,6 +22,7 @@ import { fetch as fetchAllCategories } from "../../../services/categories-servic
 import { fetch as fetchAllDesigners } from "../../../services/designers-service/designers-service";
 import { fetch as fetchAllPublishers } from "../../../services/publishers-service/publishers-service";
 import { fetch as fetchAllMechanisms } from "../../../services/mechanisms-service/mechanisms-service";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 
 interface Categories {
   id: string;
@@ -161,17 +162,15 @@ export const CreateGame = () => {
   }, [reset]);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerCovil />
         <Paper
           elevation={0}
           sx={{
@@ -442,6 +441,6 @@ export const CreateGame = () => {
           </Paper>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

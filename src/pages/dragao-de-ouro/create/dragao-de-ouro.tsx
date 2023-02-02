@@ -1,13 +1,10 @@
-import {
-  Box,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import { fetch } from "../../../services/awards-service/awards-service";
 import { useState, useCallback, useEffect } from "react";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 
 export const DragaoDeOuro = () => {
   // FORM
@@ -25,17 +22,15 @@ export const DragaoDeOuro = () => {
   }, []);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerAwards />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -46,13 +41,10 @@ export const DragaoDeOuro = () => {
           </Typography>
 
           <Box sx={{ width: "100%" }}>
-            <EnchancedTableAwards
-              data={awards}
-              setAwards={setAwards}
-            />
+            <EnchancedTableAwards data={awards} setAwards={setAwards} />
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

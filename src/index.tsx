@@ -6,7 +6,7 @@ import { RouterProvider } from "react-router-dom";
 import { Container } from "@mui/material";
 import { router } from "./router";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import {green, grey, orange, red} from "@mui/material/colors";
+import { green, grey, orange, red } from "@mui/material/colors";
 
 const theme = createTheme({
   palette: {
@@ -40,6 +40,5 @@ root.render(
     </ThemeProvider>
   </React.StrictMode>
 );
-
 
 reportWebVitals();

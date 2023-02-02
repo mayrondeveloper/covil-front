@@ -16,6 +16,9 @@ import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
+import DataGrid from "../view/DataGrid";
+import DataGridDefault from "../view/DataGrid";
 
 const defaultValues = {
   name: "Dragão de ouro",
@@ -119,17 +122,15 @@ export const CreateAwards = () => {
   }, []);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerAwards />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -336,10 +337,16 @@ export const CreateAwards = () => {
                   refresh={resetField}
                 />
               </Box>
+
+              {/*<DataGridDefault*/}
+              {/*  data={awards}*/}
+              {/*  setAwards={setAwards}*/}
+              {/*  refresh={resetField}*/}
+              {/*/>*/}
             </Paper>
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

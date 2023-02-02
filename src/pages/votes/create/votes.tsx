@@ -17,6 +17,7 @@ import { fetch as fetchCategories } from "../../../services/awards-categories-se
 import { fetch as fetchAllGames } from "../../../services/game-service/game-service";
 import { fetch as fetchAllParticipants } from "../../../services/participants-service/participants-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 
 const defaultValues = {
   place: "1",
@@ -131,17 +132,15 @@ export const Votes = () => {
   }, []);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerAwards />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -206,6 +205,13 @@ export const Votes = () => {
                   id={"category"}
                   label={"Categoria"}
                 />
+              </Stack>
+
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 1, sm: 2, md: 4 }}
+                sx={{ marginTop: 4 }}
+              >
                 <Asynchronous
                   multiple={false}
                   control={control}
@@ -226,13 +232,12 @@ export const Votes = () => {
                   id={"participant"}
                   label={"Participantes"}
                 />
+                <Box sx={{ width: "100%" }}>
+                  <Button type="submit" variant="contained" color={"secondary"}>
+                    Enviar
+                  </Button>
+                </Box>
               </Stack>
-
-              <Box sx={{ marginTop: 2 }}>
-                <Button type="submit" variant="contained" color={"secondary"}>
-                  Enviar
-                </Button>
-              </Box>
             </form>
             <Paper elevation={0} sx={{ marginTop: 6, width: "100%" }}>
               <Typography
@@ -254,6 +259,6 @@ export const Votes = () => {
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

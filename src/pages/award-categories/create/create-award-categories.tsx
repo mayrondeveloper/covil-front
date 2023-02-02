@@ -15,6 +15,7 @@ import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwardCategories from "../../../components/Table/enchanced-table/enchanced-table-award-catgories";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 
 const defaultValues = {
   name: "",
@@ -58,17 +59,15 @@ export const CreateAwardCategories = () => {
   }, []);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerAwards />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -165,6 +164,6 @@ export const CreateAwardCategories = () => {
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

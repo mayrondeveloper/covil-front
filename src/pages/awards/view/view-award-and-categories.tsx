@@ -8,6 +8,7 @@ import Asynchronous from "../../../components/Form/Input/asynchronous/asynchrono
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
 import EnchancedTableAwardsCategories from "../../../components/Table/enchanced-table/enchanced-table-awards-categories";
+import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 
 const defaultValues = {
   place: "1",
@@ -73,17 +74,15 @@ export const ViewAwardAndCategory = () => {
   const resetAsyncForm = useCallback(async () => reset(defaultValues), [reset]);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
           padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
+          height: "calc(100vh - 112px)",
         }}
       >
-        <DrawerAwards />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
@@ -154,6 +153,6 @@ export const ViewAwardAndCategory = () => {
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

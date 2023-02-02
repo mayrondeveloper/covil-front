@@ -1,15 +1,9 @@
 import EnhancedTable from "../../components/Table/enchanced-table/enchanced-table";
-import {
-  Box,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import { fetch } from "../../services/game-service/game-service";
 import { fetch as fetchAll } from "../../services/categories-service/categories-service";
-import { useEffect, useState, useCallback } from "react";
-import ResponsiveAppBar from "../../components/AppBar/ResponsiveAppBar";
-import DrawerCovil from "../../components/Drawer/drawer";
-
+import React, { useEffect, useState, useCallback } from "react";
+import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawerLeft";
 
 export const Games = () => {
   const [games, setGames] = useState(null);
@@ -38,22 +32,17 @@ export const Games = () => {
   }, []);
 
   return (
-    <>
-      <ResponsiveAppBar />
+    <PersistentDrawerLeft>
       <Box
         sx={{
-          padding: 0,
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 69px)",
         }}
       >
-        <DrawerCovil />
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
             component="h1"
-            
             sx={{ fontFamily: "Roboto", fontWeight: 600 }}
           >
             Jogos
@@ -64,6 +53,6 @@ export const Games = () => {
           </Box>
         </Paper>
       </Box>
-    </>
+    </PersistentDrawerLeft>
   );
 };

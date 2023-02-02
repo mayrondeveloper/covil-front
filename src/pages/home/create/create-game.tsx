@@ -17,7 +17,7 @@ import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import DrawerCovil from "../../../components/Drawer/drawer";
-import {numPlayers, player_age} from "./data/data";
+import { numPlayers, player_age } from "./data/data";
 
 interface Categories {
   id: string;
@@ -105,17 +105,20 @@ export const CreateGame = () => {
     });
   }, [reset]);
 
-
   return (
     <>
-      <ResponsiveAppBar />
-      <Box sx={{ padding: 0, display: "flex", flexDirection: "row", height: 'calc(100vh - 69px)' }}>
-        <DrawerCovil />
+      <Box
+        sx={{
+          padding: 0,
+          display: "flex",
+          flexDirection: "row",
+          height: "calc(100vh - 112px)",
+        }}
+      >
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
           <Typography
             variant="h5"
             component="h1"
-            
             sx={{ fontFamily: "Roboto", fontWeight: 600 }}
           >
             Cadastrar jogo
@@ -134,7 +137,8 @@ export const CreateGame = () => {
                 <Box sx={{ width: "100%" }}>
                   <Controller
                     render={({ field }: any) => (
-                      <TextField size={"small"} 
+                      <TextField
+                        size={"small"}
                         sx={{ width: "100%" }}
                         label="Nome"
                         variant="outlined"
@@ -148,7 +152,7 @@ export const CreateGame = () => {
                   {errors.name?.type === "required" && (
                     <Typography
                       role="alert"
-                      color={'error'}
+                      color={"error"}
                       sx={{ fontSize: "12px" }}
                     >
                       Campo obrigatório
@@ -159,7 +163,8 @@ export const CreateGame = () => {
                   {" "}
                   <Controller
                     render={({ field }: any) => (
-                      <TextField size={"small"} 
+                      <TextField
+                        size={"small"}
                         sx={{ width: "100%" }}
                         label="Descrição"
                         variant="outlined"
@@ -186,7 +191,11 @@ export const CreateGame = () => {
                           {...field}
                         >
                           {numPlayers.map((players, index) => {
-                           return  <MenuItem key={index} value={players}>{players}</MenuItem>
+                            return (
+                              <MenuItem key={index} value={players}>
+                                {players}
+                              </MenuItem>
+                            );
                           })}
                         </Select>
                       </FormControl>
@@ -203,24 +212,28 @@ export const CreateGame = () => {
               >
                 <Box sx={{ width: "100%" }}>
                   <Controller
-                      render={({ field }: any) => (
-                          <FormControl fullWidth>
-                            <InputLabel id="demo-simple-select-label">
-                              Idade mínima
-                            </InputLabel>
-                            <Select
-                                labelId="demo-simple-select-label"
-                                id="demo-simple-select"
-                                variant="outlined"
-                                label="Idade mínima"
-                                {...field}
-                            >
-                              {player_age.map((age, index) => {
-                                return  <MenuItem key={index} value={age}>{age}</MenuItem>
-                              })}
-                            </Select>
-                          </FormControl>
-                      )}
+                    render={({ field }: any) => (
+                      <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">
+                          Idade mínima
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          variant="outlined"
+                          label="Idade mínima"
+                          {...field}
+                        >
+                          {player_age.map((age, index) => {
+                            return (
+                              <MenuItem key={index} value={age}>
+                                {age}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                      </FormControl>
+                    )}
                     name="player_age"
                     control={control}
                   />
@@ -229,7 +242,8 @@ export const CreateGame = () => {
                   {" "}
                   <Controller
                     render={({ field }: any) => (
-                      <TextField size={"small"} 
+                      <TextField
+                        size={"small"}
                         sx={{ width: "100%" }}
                         label="Tempo de jogo"
                         variant="outlined"
@@ -244,7 +258,8 @@ export const CreateGame = () => {
                   {" "}
                   <Controller
                     render={({ field }: any) => (
-                      <TextField size={"small"} 
+                      <TextField
+                        size={"small"}
                         sx={{ width: "100%" }}
                         label="Preço BRL"
                         variant="outlined"
@@ -258,7 +273,8 @@ export const CreateGame = () => {
                 <Box sx={{ width: "100%" }}>
                   <Controller
                     render={({ field }: any) => (
-                      <TextField size={"small"} 
+                      <TextField
+                        size={"small"}
                         sx={{ width: "100%" }}
                         label="Peso"
                         variant="outlined"
@@ -273,7 +289,8 @@ export const CreateGame = () => {
                   {" "}
                   <Controller
                     render={({ field }: any) => (
-                      <TextField size={"small"} 
+                      <TextField
+                        size={"small"}
                         sx={{ width: "100%" }}
                         label="Ano de publicação"
                         variant="outlined"
@@ -295,7 +312,7 @@ export const CreateGame = () => {
               </Stack>
 
               <Box sx={{ marginTop: 2 }}>
-                <Button type="submit" variant="contained" color={'secondary'}>
+                <Button type="submit" variant="contained" color={"secondary"}>
                   Enviar
                 </Button>
               </Box>

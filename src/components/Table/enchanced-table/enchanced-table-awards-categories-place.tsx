@@ -29,28 +29,11 @@ export default function EnchancedTableAwardsCategoriesPlace({
       const votes = dt.votes.map(
         (vote: any) => `${vote.place}° (${vote.participant.name})`
       );
-      const totalVotos = dt.votes.map((vote: any) => {
-        const sum: number[] = [];
-        if (vote.place === "1") {
-          sum.push(5);
-        } else if (vote.place === "2") {
-          sum.push(3);
-        } else if (vote.place === "3") {
-          sum.push(1);
-        }
-        return sum[0];
+      const totalVotos = dt.votes.map((vote: any) => Number(vote.value_vote));
+      var sum = totalVotos.reduce(function (soma: number, i: number) {
+        return soma + i;
       });
-      let sum = 0;
-      if (totalVotos.length >= 1) {
-        sum = totalVotos?.reduce(function (
-          previousValue: any,
-          currentValue: any
-        ) {
-          return previousValue + currentValue;
-        });
-      } else {
-        sum = 0;
-      }
+
       return createData(dt.id, dt.name, votes.join(", "), sum);
     });
     setRows(newData);
