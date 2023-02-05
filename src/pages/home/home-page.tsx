@@ -1,4 +1,3 @@
-import EnhancedTable from "../../components/Table/enchanced-table/enchanced-table";
 import {
   Box,
   Button,
@@ -12,8 +11,6 @@ import {
 import { fetch } from "../../services/game-service/game-service";
 import { fetch as fetchAll } from "../../services/categories-service/categories-service";
 import { useEffect, useState, useCallback } from "react";
-import ResponsiveAppBar from "../../components/AppBar/ResponsiveAppBar";
-import DrawerCovil from "../../components/Drawer/drawer";
 import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawerLeft";
 import Image from "../../../src/images/dragaodeouro.jpg";
 

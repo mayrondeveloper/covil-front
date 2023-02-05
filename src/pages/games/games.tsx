@@ -6,16 +6,16 @@ import React, { useEffect, useState, useCallback } from "react";
 import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawerLeft";
 
 export const Games = () => {
-  const [games, setGames] = useState(null);
-  const [categories, setCategories] = useState(null);
+  const [games, setGames] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    if (games) return;
+    if (games.length) return;
     fetchGames();
   }, [games]);
 
   useEffect(() => {
-    if (categories) return;
+    if (categories.length) return;
     fetchCategories();
   }, [categories]);
 

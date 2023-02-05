@@ -46,9 +46,8 @@ export const CreateGame = () => {
   const [, setLoading] = useState(false);
 
   useEffect(() => {
-    if (games.length) return;
     fetchGames();
-  }, [games]);
+  }, []);
 
   const fetchGames = useCallback(() => {
     fetch()
@@ -57,9 +56,8 @@ export const CreateGame = () => {
   }, []);
 
   useEffect(() => {
-    if (categories.length) return;
     fetchCategories();
-  }, [categories]);
+  }, []);
 
   const fetchCategories = useCallback(() => {
     fetchAllCategories()
@@ -68,9 +66,8 @@ export const CreateGame = () => {
   }, []);
 
   useEffect(() => {
-    if (designers.length) return;
     fetchDesigners();
-  }, [designers]);
+  }, []);
 
   const fetchDesigners = useCallback(() => {
     fetchAllDesigners()
@@ -79,9 +76,8 @@ export const CreateGame = () => {
   }, []);
 
   useEffect(() => {
-    if (publishers.length) return;
     fetchPublishers();
-  }, [publishers]);
+  }, []);
 
   const fetchPublishers = useCallback(() => {
     fetchAllPublishers()
@@ -90,9 +86,8 @@ export const CreateGame = () => {
   }, []);
 
   useEffect(() => {
-    if (mechanisms.length) return;
     fetchMechanisms();
-  }, [mechanisms]);
+  }, []);
 
   const fetchMechanisms = useCallback(() => {
     fetchAllMechanisms()

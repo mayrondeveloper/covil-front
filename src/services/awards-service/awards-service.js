@@ -1,10 +1,7 @@
 import { axiosInstance } from "../axios/axios";
 
-const baseURL = process.env.REACT_APP_BASE_PATH;
+export const fetch = () => axiosInstance.get(`/awards`);
 
-export const fetch = () => axiosInstance.get(`${baseURL}/awards`);
+export const create = (data) => axiosInstance.post(`/awards`, data);
 
-export const create = (data) => axiosInstance.post(`${baseURL}/awards`, data);
-
-export const remove = (id) =>
-  axiosInstance.delete(`http://localhost:4002/awards/${id}`);
+export const remove = (id) => axiosInstance.delete(`/awards/${id}`);
