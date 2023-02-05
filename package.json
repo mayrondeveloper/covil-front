@@ -36,7 +36,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:digitalOcean": "yarn install --production=false && rimraf dist && yarn build && yarn install --production --frozen-lockfile"
   },
   "eslintConfig": {
     "extends": [
