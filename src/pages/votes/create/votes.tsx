@@ -10,7 +10,6 @@ import { create, fetch } from "../../../services/votes/votes-service";
 import { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableVotes from "../../../components/Table/enchanced-table/enchanced-table-votes";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";

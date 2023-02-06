@@ -16,7 +16,6 @@ import { useEffect, useState, useCallback, Fragment } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
-import DrawerCovil from "../../../components/Drawer/drawer";
 import { numPlayers, player_age } from "./data/data";
 
 interface Categories {

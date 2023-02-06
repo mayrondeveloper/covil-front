@@ -11,11 +11,10 @@ import {
   Typography,
 } from "@mui/material";
 import { create, fetch } from "../../../services/game-service/game-service";
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
-import DrawerCovil from "../../../components/Drawer/drawer";
 import { numPlayers, player_age } from "./data/data";
 import EnhancedTable from "../../../components/Table/enchanced-table/enchanced-table";
 import { fetch as fetchAllCategories } from "../../../services/categories-service/categories-service";
@@ -23,6 +22,8 @@ import { fetch as fetchAllDesigners } from "../../../services/designers-service/
 import { fetch as fetchAllPublishers } from "../../../services/publishers-service/publishers-service";
 import { fetch as fetchAllMechanisms } from "../../../services/mechanisms-service/mechanisms-service";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
+import { Link } from "react-router-dom";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 interface Categories {
   id: string;
@@ -175,6 +176,32 @@ export const CreateGame = () => {
             height: "100vh",
           }}
         >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "12px",
+              marginBottom: 4,
+            }}
+          >
+            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
+              Home
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/game"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Jogos
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/game"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Cadastrar jogo
+            </Link>
+          </Box>
           <Typography
             variant="h5"
             component="h1"
@@ -421,19 +448,6 @@ export const CreateGame = () => {
               </Box>
             </form>
           </Box>
-          <Paper elevation={0} sx={{ marginTop: 4, width: "100%" }}>
-            <Typography
-              variant="h5"
-              component="h1"
-              sx={{ fontFamily: "Roboto", fontWeight: 600 }}
-            >
-              Jogos
-            </Typography>
-
-            <Box sx={{ marginTop: 4, width: "100%" }}>
-              <EnhancedTable data={games} setGames={setGames} />
-            </Box>
-          </Paper>
         </Paper>
       </Box>
     </PersistentDrawerLeft>

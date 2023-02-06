@@ -12,8 +12,6 @@ import {
 } from "../../../services/awards-categories-service/awards-categories-service";
 import { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwardCategories from "../../../components/Table/enchanced-table/enchanced-table-award-catgories";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 

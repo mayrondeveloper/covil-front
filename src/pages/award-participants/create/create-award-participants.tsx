@@ -13,7 +13,6 @@ import {
 import { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwardParticipants from "../../../components/Table/enchanced-table/enchanced-table-award-participants";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 

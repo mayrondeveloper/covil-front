@@ -3,7 +3,6 @@ import { findAllByAwardAndCategory } from "../../../services/game-service/game-s
 import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import DrawerAwards from "../../../components/Drawer/awards";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";

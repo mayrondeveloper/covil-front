@@ -10,15 +10,16 @@ import { create, fetch } from "../../../services/awards-service/awards-service";
 import { fetch as fetchAllAwardsCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllGames } from "../../../services/game-service/game-service";
 import { fetch as fetchAllParticipants } from "../../../services/participants-service/participants-service";
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 import DataGrid from "../view/DataGrid";
 import DataGridDefault from "../view/DataGrid";
+import { Link } from "react-router-dom";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const defaultValues = {
   name: "Dragão de ouro",
@@ -132,6 +133,32 @@ export const CreateAwards = () => {
         }}
       >
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "12px",
+              marginBottom: 4,
+            }}
+          >
+            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
+              Home
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/awards"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Prêmios
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/awards/create-awards"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Cadastrar prêmio
+            </Link>
+          </Box>
           <Typography
             variant="h5"
             component="h1"
@@ -321,29 +348,6 @@ export const CreateAwards = () => {
                 </Button>
               </Box>
             </form>
-            <Paper elevation={0} sx={{ marginTop: 6, width: "100%" }}>
-              <Typography
-                variant="h5"
-                component="h1"
-                sx={{ fontFamily: "Roboto", fontWeight: 600 }}
-              >
-                Prêmios
-              </Typography>
-
-              <Box sx={{ width: "100%" }}>
-                <EnchancedTableAwards
-                  data={awards}
-                  setAwards={setAwards}
-                  refresh={resetField}
-                />
-              </Box>
-
-              {/*<DataGridDefault*/}
-              {/*  data={awards}*/}
-              {/*  setAwards={setAwards}*/}
-              {/*  refresh={resetField}*/}
-              {/*/>*/}
-            </Paper>
           </Box>
         </Paper>
       </Box>

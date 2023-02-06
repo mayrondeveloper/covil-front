@@ -13,6 +13,7 @@ import { fetch as fetchAll } from "../../services/categories-service/categories-
 import { useEffect, useState, useCallback } from "react";
 import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawerLeft";
 import Image from "../../../src/images/dragaodeouro.jpg";
+import { Link } from "react-router-dom";
 
 export const HomePage = () => {
   const [games, setGames] = useState(null);
@@ -49,15 +50,85 @@ export const HomePage = () => {
           display: "flex",
           flexDirection: "row",
           height: "calc(100vh - 112px)",
+          gap: 2,
         }}
       >
-        <Paper sx={{ marginTop: "120px", height: "max-content" }}>
-          <Card sx={{ maxWidth: 345 }}>
-            <CardMedia
-              sx={{ height: 140 }}
-              image={Image}
-              title="dragaodeouro"
-            />
+        <Paper
+          sx={{
+            marginTop: "120px",
+            height: "max-content",
+            display: "flex",
+            gap: 2,
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <Card
+            sx={{
+              maxWidth: 345,
+              minHeight: 200,
+              display: "flex",
+              gap: 2,
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            {/*<CardMedia*/}
+            {/*  sx={{ height: 140 }}*/}
+            {/*  image={Image}*/}
+            {/*  title="dragaodeouro"*/}
+            {/*/>*/}
+            <CardContent>
+              <Typography
+                gutterBottom
+                variant="h5"
+                component="div"
+                fontWeight={"600"}
+              >
+                Cadastrar Jogo
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Cadastre um jogo com categoria, mecânica e outros diversos
+                atributos.
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ padding: 2 }}>
+              <Link
+                to={"/game/create-game"}
+                style={{ textDecoration: "none", color: "#212121" }}
+              >
+                <Button size="medium" variant="contained" color={"secondary"}>
+                  Cadastrar
+                </Button>
+              </Link>
+            </CardActions>
+          </Card>
+        </Paper>
+        <Paper
+          sx={{
+            marginTop: "120px",
+            height: "max-content",
+            display: "flex",
+            gap: 2,
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <Card
+            sx={{
+              maxWidth: 345,
+              minHeight: 200,
+              display: "flex",
+              gap: 2,
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            {/*<CardMedia*/}
+            {/*  sx={{ height: 140 }}*/}
+            {/*  image={Image}*/}
+            {/*  title="dragaodeouro"*/}
+            {/*/>*/}
             <CardContent>
               <Typography
                 gutterBottom
@@ -71,10 +142,15 @@ export const HomePage = () => {
                 Cadastrar um prêmio com jogos, categorias e participantes.
               </Typography>
             </CardContent>
-            <CardActions>
-              <Button size="medium" variant="contained" color={"secondary"}>
-                Cadastrar
-              </Button>
+            <CardActions sx={{ padding: 2 }}>
+              <Link
+                to={"/awards/create-awards"}
+                style={{ textDecoration: "none", color: "#212121" }}
+              >
+                <Button size="medium" variant="contained" color={"secondary"}>
+                  Cadastrar
+                </Button>
+              </Link>
             </CardActions>
           </Card>
         </Paper>

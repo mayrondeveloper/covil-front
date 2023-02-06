@@ -13,7 +13,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ListItem from "@mui/material/ListItem";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const menu = [
   {
@@ -35,10 +35,10 @@ const menu = [
 ];
 
 const menuListar = [
-  {
-    name: "Prêmio e categoria",
-    route: "/awards/view-award-and-category",
-  },
+  // {
+  //   name: "Prêmio e categoria",
+  //   route: "/awards/view-award-and-category",
+  // },
   {
     name: "Vencedores por premio e categoria",
     route: "/awards/view-award-and-category-places",
@@ -48,7 +48,7 @@ const menuListar = [
 const menu1 = [
   {
     name: "Jogos",
-    route: "/game/create-game",
+    route: "/game",
   },
   {
     name: "Categoria",
@@ -115,7 +115,7 @@ let UnActiveStyle = {
   fontSize: "14px",
   textDecoration: "none",
   width: "100%",
-  color: "#000000",
+  color: "#212121",
   padding: "12px 28px",
   "&:hover": {
     backgroundColor: "#eaeaea",
@@ -207,7 +207,9 @@ export default function PersistentDrawerLeft({ children }: any) {
               transform: "translate(-50px, -50px)",
             }}
           >
-            <img src="/covil.png" alt="" width={90} />
+            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
+              <img src="/covil.png" alt="" width={90} />
+            </Link>
           </Box>
           {/*<Typography variant="h6" noWrap component="div">*/}
           {/*  Dragão de ouro*/}

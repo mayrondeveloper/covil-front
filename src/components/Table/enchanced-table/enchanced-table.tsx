@@ -10,7 +10,7 @@ import { useEffect, useState, useCallback } from "react";
 import { deleteGame, fetch } from "../../../services/game-service/game-service";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { styled } from "@mui/material";
-
+import EditIcon from "@mui/icons-material/Edit";
 function createData(
   id: string,
   name: string,
@@ -18,9 +18,19 @@ function createData(
   price: number,
   categories: number,
   publishers: any[],
+  edit: string,
   excluded: string
 ) {
-  return { id, name, description, price, categories, publishers, excluded };
+  return {
+    id,
+    name,
+    description,
+    price,
+    categories,
+    publishers,
+    edit,
+    excluded,
+  };
 }
 
 export default function EnchancedTable({ data, setGames }: any) {
@@ -41,6 +51,7 @@ export default function EnchancedTable({ data, setGames }: any) {
         game.price,
         gameCategories.join(", "),
         gamePublishers.join(", "),
+        "Editar",
         "X"
       );
     });
@@ -53,6 +64,9 @@ export default function EnchancedTable({ data, setGames }: any) {
       .catch((error: Error) => console.log(error));
   }, []);
 
+  const editarJogo = (id: string) => {
+    console.log("Ditar ID:", id);
+  };
   const excluirJogo = (id: string) => {
     deleteGame(id)
       .then(() => fetchGames())
@@ -78,6 +92,7 @@ export default function EnchancedTable({ data, setGames }: any) {
             <StyledTableCell align="right">Preço</StyledTableCell>
             <StyledTableCell align="right">Categoria</StyledTableCell>
             <StyledTableCell align="right">Editora</StyledTableCell>
+            <StyledTableCell align="right">Editar</StyledTableCell>
             <StyledTableCell align="right">Excluir</StyledTableCell>
           </TableRow>
         </TableHead>
@@ -94,12 +109,19 @@ export default function EnchancedTable({ data, setGames }: any) {
               <TableCell align="right">{row.price}</TableCell>
               <TableCell align="right">{row.categories}</TableCell>
               <TableCell align="right">{row.publishers}</TableCell>
-              <TableCell
-                sx={{ cursor: "pointer" }}
-                align="right"
-                onClick={() => excluirJogo(row.id)}
-              >
-                <DeleteForeverRoundedIcon color={"warning"} />
+              <TableCell align="right">
+                <EditIcon
+                  sx={{ cursor: "pointer" }}
+                  color={"primary"}
+                  onClick={() => editarJogo(row.id)}
+                />
+              </TableCell>
+              <TableCell align="right">
+                <DeleteForeverRoundedIcon
+                  sx={{ cursor: "pointer" }}
+                  color={"warning"}
+                  onClick={() => excluirJogo(row.id)}
+                />
               </TableCell>
             </TableRow>
           ))}

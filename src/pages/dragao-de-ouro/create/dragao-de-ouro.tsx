@@ -1,10 +1,12 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { fetch } from "../../../services/awards-service/awards-service";
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import DrawerAwards from "../../../components/Drawer/awards";
 import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
+import { Link } from "react-router-dom";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 
 export const DragaoDeOuro = () => {
   // FORM
@@ -32,13 +34,61 @@ export const DragaoDeOuro = () => {
         }}
       >
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
-          <Typography
-            variant="h5"
-            component="h1"
-            sx={{ fontFamily: "Roboto", fontWeight: 600 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "12px",
+              marginBottom: 4,
+            }}
           >
-            Prêmios
-          </Typography>
+            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
+              Home
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/awards"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Prêmios
+            </Link>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{ fontFamily: "Roboto", fontWeight: 600 }}
+            >
+              Prêmios
+            </Typography>
+            <Link
+              to={"/awards/create-awards"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <AddBoxIcon color={"secondary"} sx={{ fontSize: "26px" }} />
+                {/*<Typography*/}
+                {/*  variant="body1"*/}
+                {/*  component="div"*/}
+                {/*  sx={{*/}
+                {/*    textTransform: "none",*/}
+                {/*    fontFamily: "Roboto",*/}
+                {/*    fontWeight: 400,*/}
+                {/*    textDecoration: "none",*/}
+                {/*    marginLeft: "8px",*/}
+                {/*  }}*/}
+                {/*>*/}
+                {/*  Adicionar*/}
+                {/*</Typography>*/}
+              </Box>
+            </Link>
+          </Box>
 
           <Box sx={{ width: "100%" }}>
             <EnchancedTableAwards data={awards} setAwards={setAwards} />
