@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { create, fetch } from "../../../services/votes/votes-service";
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import EnchancedTableVotes from "../../../components/Table/enchanced-table/enchanced-table-votes";
@@ -17,6 +17,8 @@ import { fetch as fetchAllGames } from "../../../services/game-service/game-serv
 import { fetch as fetchAllParticipants } from "../../../services/participants-service/participants-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
+import { Link } from "react-router-dom";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const defaultValues = {
   place: "1",
@@ -141,6 +143,32 @@ export const Votes = () => {
         }}
       >
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "12px",
+              marginBottom: 4,
+            }}
+          >
+            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
+              Home
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/awards"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Prêmio
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/awards/create-votes"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Cadastrar jogo
+            </Link>
+          </Box>
           <Typography
             variant="h5"
             component="h1"

@@ -2,16 +2,15 @@ import { Box, Button, Divider, Paper, Stack, Typography } from "@mui/material";
 import { findAllByAwardAndCategory } from "../../../services/game-service/game-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
-import EnchancedTableAwardsCategoriesPlace from "../../../components/Table/enchanced-table/enchanced-table-awards-categories-place";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 import DataGridDefaultWiners from "./DataGridWiners";
 import CardGame from "../../../components/CardGame/CardGame";
 import { Link } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { ReactComponent as EmptyState } from "../../../images/empty-state/empty.svg";
 
 const defaultValues = {
   place: "1",
@@ -35,7 +34,7 @@ export const ViewAwardAndCategoryPlaces = () => {
       .then((r) => {
         setData(r.data);
         resetAsyncForm();
-        setResetField(!resetField);
+        // setResetField(!resetField);
       })
       .catch(() => setLoading(false));
   };
@@ -178,26 +177,38 @@ export const ViewAwardAndCategoryPlaces = () => {
                 </Box>
               </Stack>
             </form>
-            <Divider sx={{ margin: "20px 0", opacity: "0.4" }} />
 
-            <Box
-              sx={{ display: "flex", gap: "15px", marginTop: 6, width: "100%" }}
-            >
-              {colocation &&
-                colocation.map((jogos: any, index: number) => {
-                  return (
-                    <CardGame
-                      colocacao={index + 1}
-                      jogo={jogos.game}
-                      index={index}
-                    />
-                  );
-                })}
-            </Box>
+            {data.length >= 1 && (
+              <>
+                <Divider sx={{ margin: "20px 0", opacity: "0.4" }} />
 
-            <Divider sx={{ marginTop: 6, marginBottom: 6, opacity: "0.4" }} />
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: "15px",
+                    marginTop: 6,
+                    width: "100%",
+                  }}
+                >
+                  {colocation &&
+                    colocation.map((jogos: any, index: number) => {
+                      return (
+                        <CardGame
+                          colocacao={index + 1}
+                          jogo={jogos.game}
+                          index={index}
+                        />
+                      );
+                    })}
+                </Box>
 
-            {data ? (
+                <Divider
+                  sx={{ marginTop: 6, marginBottom: 6, opacity: "0.4" }}
+                />
+              </>
+            )}
+
+            {data.length >= 1 ? (
               <Paper elevation={0} sx={{ marginTop: 6, width: "100%" }}>
                 <Box sx={{ width: "100%" }}>
                   {/*<EnchancedTableAwardsCategoriesPlace*/}
@@ -214,7 +225,43 @@ export const ViewAwardAndCategoryPlaces = () => {
                 </Box>
               </Paper>
             ) : (
-              <></>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  marginTop: 6,
+                }}
+              >
+                <EmptyState width={200} />
+                <Box sx={{ textAlign: "center" }}>
+                  <Typography
+                    variant="h6"
+                    component="h2"
+                    color={"primary"}
+                    sx={{
+                      fontFamily: "Roboto",
+                      fontWeight: 600,
+                      marginTop: "12px",
+                    }}
+                  >
+                    Nenhuma informação por aqui.
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    component="h2"
+                    sx={{
+                      fontFamily: "Roboto",
+                      fontWeight: 400,
+                      marginTop: "12px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Selecione um prêmio e a categoria e clique no botão 'buscar'
+                    para ver a lista
+                  </Typography>
+                </Box>
+              </Box>
             )}
           </Box>
         </Paper>

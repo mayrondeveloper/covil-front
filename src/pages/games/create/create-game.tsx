@@ -22,7 +22,7 @@ import { fetch as fetchAllMechanisms } from "../../../services/mechanisms-servic
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 import { Link, useNavigate } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { toast, ToastContainer } from "react-toastify";
+import { toast, ToastContainer, TypeOptions } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 interface Categories {
   id: string;
@@ -45,7 +45,8 @@ export const CreateGame = () => {
   const [mechanismsSelecionadas, setMechanismsSelecionadas] = useState([]);
   const [, setLoading] = useState(false);
   const navigate = useNavigate();
-  const notify = (message: string) => toast(message);
+  const notify = (message: string, type: TypeOptions) =>
+    toast(message, { type: type });
 
   useEffect(() => {
     fetchGames();
@@ -111,11 +112,11 @@ export const CreateGame = () => {
         fetchGames();
         resetAsyncForm();
         setResetField(!resetField);
-        notify("Jogo cadastrado!");
+        notify("Jogo cadastrado!", "success");
         // navigate("/game");
       })
       .catch(() => {
-        notify("Vixe! Deu ruim");
+        notify("Vixe! Deu ruim", "error");
         setLoading(false);
       });
   };

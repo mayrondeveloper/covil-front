@@ -12,14 +12,13 @@ import { fetch as fetchAllGames } from "../../../services/game-service/game-serv
 import { fetch as fetchAllParticipants } from "../../../services/participants-service/participants-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
-import EnchancedTableAwards from "../../../components/Table/enchanced-table/enchanced-table-awards";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
-import DataGrid from "../view/DataGrid";
-import DataGridDefault from "../view/DataGrid";
 import { Link } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { toast, ToastContainer, TypeOptions } from "react-toastify";
+const notify = (message: string, type: TypeOptions) =>
+  toast(message, { type: type });
 
 const defaultValues = {
   name: "Dragão de ouro",
@@ -93,12 +92,17 @@ export const CreateAwards = () => {
       id_voter: participantsArr,
     };
     create(newData)
-      .then((r) => {
+      .then(() => {
         fetchAwards();
         resetAsyncForm();
         setResetField(!resetField);
+        notify("Prêmio cadastrado!", "success");
       })
-      .catch((error) => setLoading(false));
+      .catch((error) => {
+        console.log(error);
+        notify("Vixe! Deu ruim", "error");
+        setLoading(false);
+      });
   };
 
   // FORM
@@ -124,6 +128,7 @@ export const CreateAwards = () => {
 
   return (
     <PersistentDrawerLeft>
+      <ToastContainer theme="dark" />
       <Box
         sx={{
           padding: 0,
