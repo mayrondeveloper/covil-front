@@ -20,18 +20,21 @@ export default function Asynchronous({
   control,
   id,
   label,
+  defaultValue,
   name,
   data,
   multiple = true,
 }: any) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState([]);
+  const [value, setValue] = useState<any>([]);
   const [options, setOptions] = useState<Categories[]>([]);
   const loading = open && options.length === 0;
 
   useEffect(() => {
-    setValue([]);
-  }, [resetField]);
+    if (!defaultValue) return;
+    setValue(defaultValue);
+    setData(defaultValue);
+  }, [resetField, defaultValue]);
 
   useEffect(() => {
     if (!data) return;

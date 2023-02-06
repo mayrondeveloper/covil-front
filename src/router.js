@@ -30,6 +30,10 @@ export const router = createBrowserRouter([
     element: <CreateGame />,
   },
   {
+    path: "/game/edit-game/:id",
+    element: <CreateGame />,
+  },
+  {
     path: "/game/create-category",
     element: <CreateCategories />,
   },
@@ -55,6 +59,10 @@ export const router = createBrowserRouter([
   },
   {
     path: "/awards/create-awards",
+    element: <CreateAwards />,
+  },
+  {
+    path: "/awards/edit-awards/:id",
     element: <CreateAwards />,
   },
   {

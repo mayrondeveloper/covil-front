@@ -7,20 +7,19 @@ import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawe
 import { Link } from "react-router-dom";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import EmptyState from "../../components/Empty/empty-state";
 
 export const Games = () => {
   const [games, setGames] = useState([]);
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    if (games.length) return;
     fetchGames();
-  }, [games]);
+  }, []);
 
   useEffect(() => {
-    if (categories.length) return;
     fetchCategories();
-  }, [categories]);
+  }, []);
 
   const fetchGames = useCallback(() => {
     fetch()
@@ -76,32 +75,30 @@ export const Games = () => {
             >
               Jogos
             </Typography>
-            <Link
-              to={"/game/create-game"}
-              style={{ textDecoration: "none", color: "#212121" }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <AddBoxIcon color={"secondary"} sx={{ fontSize: "26px" }} />
-                {/*<Typography*/}
-                {/*  variant="body1"*/}
-                {/*  component="div"*/}
-                {/*  sx={{*/}
-                {/*    textTransform: "none",*/}
-                {/*    fontFamily: "Roboto",*/}
-                {/*    fontWeight: 400,*/}
-                {/*    textDecoration: "none",*/}
-                {/*    marginLeft: "8px",*/}
-                {/*  }}*/}
-                {/*>*/}
-                {/*  Adicionar*/}
-                {/*</Typography>*/}
-              </Box>
-            </Link>
+
+            {games.length >= 1 && (
+              <Link
+                to={"/game/create-game"}
+                style={{ textDecoration: "none", color: "#212121" }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <AddBoxIcon color={"secondary"} sx={{ fontSize: "26px" }} />
+                </Box>
+              </Link>
+            )}
           </Box>
 
-          <Box sx={{ marginTop: 4, width: "100%" }}>
-            <EnhancedTable data={games} setGames={setGames} />
-          </Box>
+          {games.length >= 1 ? (
+            <Box sx={{ marginTop: 4, width: "100%" }}>
+              <EnhancedTable data={games} setGames={setGames} />
+            </Box>
+          ) : (
+            <EmptyState
+              title={"Nenhum jogo cadastrado"}
+              subtitle={"Clique no botão abaixo para cadastrar um novo jogo"}
+              button={{ title: "Adicionar jogo", url: "" }}
+            />
+          )}
         </Paper>
       </Box>
     </PersistentDrawerLeft>

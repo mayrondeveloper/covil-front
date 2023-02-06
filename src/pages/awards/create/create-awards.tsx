@@ -6,7 +6,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { create, fetch } from "../../../services/awards-service/awards-service";
+import {
+  create,
+  fetch,
+  fetchOne,
+  update,
+} from "../../../services/awards-service/awards-service";
 import { fetch as fetchAllAwardsCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllGames } from "../../../services/game-service/game-service";
 import { fetch as fetchAllParticipants } from "../../../services/participants-service/participants-service";
@@ -14,22 +19,11 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { toast, ToastContainer, TypeOptions } from "react-toastify";
 const notify = (message: string, type: TypeOptions) =>
   toast(message, { type: type });
-
-const defaultValues = {
-  name: "Dragão de ouro",
-  created_by: "Admin",
-  description: "Melhor prêmio de divinópolis",
-  image: "",
-  year: "2023",
-  id_game: [],
-  id_award_categories: [],
-  id_participant: [],
-};
 
 export const CreateAwards = () => {
   const [resetField, setResetField] = useState(false);
@@ -37,12 +31,23 @@ export const CreateAwards = () => {
   const [awardsCategories, setAwardsCategories] = useState([]);
   const [awardsCategoriesSelecionads, setAwardsCategoriesSelecionads] =
     useState([]);
-  const [carregar, setCarregar] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [participantsSelecionados, setParticipantsSelecionados] = useState([]);
   const [games, setGames] = useState([]);
-  const [gamesSelecionados, setGamesSelecionados] = useState([]);
+  const [gamesSelecionados, setGamesSelecionados] = useState<any>([]);
 
+  const params = useParams();
+
+  const [defaultValues, setDefaultValues] = useState({
+    name: "",
+    created_by: "Admin",
+    description: "",
+    image: "",
+    year: "2023",
+    id_game: gamesSelecionados,
+    id_award_categories: [],
+    id_participant: [],
+  });
   useEffect(() => {
     if (games.length) return;
     fetchGames();
@@ -91,38 +96,68 @@ export const CreateAwards = () => {
       id_award_categories: awardsCategoriesArr,
       id_voter: participantsArr,
     };
-    create(newData)
-      .then(() => {
-        fetchAwards();
-        resetAsyncForm();
-        setResetField(!resetField);
-        notify("Prêmio cadastrado!", "success");
-      })
-      .catch((error) => {
-        console.log(error);
-        notify("Vixe! Deu ruim", "error");
-        setLoading(false);
-      });
+
+    if (params.id) {
+      update(params.id, newData)
+        .then(() => {
+          fetchAwards();
+          resetAsyncForm();
+          setResetField(!resetField);
+          notify("Prêmio atualizado!", "success");
+        })
+        .catch((error) => {
+          notify("Vixe! Deu ruim", "error");
+          setLoading(false);
+        });
+    } else {
+      create(newData)
+        .then(() => {
+          fetchAwards();
+          resetAsyncForm();
+          setResetField(!resetField);
+          notify("Prêmio cadastrado!", "success");
+        })
+        .catch((error) => {
+          notify("Vixe! Deu ruim", "error");
+          setLoading(false);
+        });
+    }
   };
 
   // FORM
 
-  const { handleSubmit, control, formState, reset } = useForm({
+  const { handleSubmit, control, formState, reset, setValue } = useForm({
     defaultValues,
   });
   const { errors } = formState;
 
   const resetAsyncForm = useCallback(async () => reset(defaultValues), [reset]);
-  const [awards, setAwards] = useState(null);
 
   useEffect(() => {
-    if (awards) return;
+    if (!params.id) return;
     fetchAwards();
-  }, [awards]);
+  }, []);
 
   const fetchAwards = useCallback(() => {
-    fetch()
-      .then((r: any) => setAwards(r.data))
+    fetchOne(params.id)
+      .then((r: any) => {
+        const game = r.data.games.map((data: any) => data.game);
+        const categories = r.data.awards_categories.map(
+          (data: any) => data.categories
+        );
+        const participantsArr = r.data.participants.map(
+          (data: any) => data.participant
+        );
+        setDefaultValues((prevState) => ({
+          ...prevState,
+          id_game: game,
+          id_award_categories: categories,
+          id_participant: participantsArr,
+        }));
+        setValue("name", r.data.name);
+        setValue("year", r.data.year);
+        setValue("description", r.data.description);
+      })
       .catch((error: Error) => console.log(error));
   }, []);
 
@@ -324,6 +359,7 @@ export const CreateAwards = () => {
                   name={"id_game"}
                   id={"id_game"}
                   label={"Jogos"}
+                  defaultValue={defaultValues.id_game}
                 />
                 <Asynchronous
                   // multiple={false}
@@ -334,6 +370,7 @@ export const CreateAwards = () => {
                   name={"id_award_categories"}
                   id={"id_award_categories"}
                   label={"Categoria"}
+                  defaultValue={defaultValues.id_award_categories}
                 />
                 <Asynchronous
                   // multiple={false}
@@ -344,6 +381,7 @@ export const CreateAwards = () => {
                   name={"id_voter"}
                   id={"id_voter"}
                   label={"Participantes"}
+                  defaultValue={defaultValues.id_participant}
                 />
               </Stack>
 

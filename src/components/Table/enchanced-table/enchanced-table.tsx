@@ -11,6 +11,7 @@ import { deleteGame, fetch } from "../../../services/game-service/game-service";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { styled } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import { useNavigate } from "react-router-dom";
 function createData(
   id: string,
   name: string,
@@ -35,6 +36,7 @@ function createData(
 
 export default function EnchancedTable({ data, setGames }: any) {
   const [rows, setRows] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const newData = data?.map((game: any): any => {
@@ -65,8 +67,9 @@ export default function EnchancedTable({ data, setGames }: any) {
   }, []);
 
   const editarJogo = (id: string) => {
-    console.log("Ditar ID:", id);
+    navigate(`/game/edit-game/${id}`);
   };
+
   const excluirJogo = (id: string) => {
     deleteGame(id)
       .then(() => fetchGames())

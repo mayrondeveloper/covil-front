@@ -10,6 +10,8 @@ import { useEffect, useState, useCallback } from "react";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { styled } from "@mui/material";
 import { fetch, remove } from "../../../services/awards-service/awards-service";
+import EditIcon from "@mui/icons-material/Edit";
+import { useNavigate } from "react-router-dom";
 
 function createData(
   id: string,
@@ -19,6 +21,7 @@ function createData(
   created_by: string,
   year: string,
   categories: any,
+  edit: string,
   excluded: string
 ) {
   return {
@@ -29,12 +32,14 @@ function createData(
     created_by,
     year,
     categories,
+    edit,
     excluded,
   };
 }
 
 export default function EnchancedTableAwards({ data, setAwards }: any) {
   const [rows, setRows] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const newData = data?.map((award: any): any => {
@@ -49,6 +54,7 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
         award.created_by,
         award.year,
         awards_categories.join(", "),
+        "edit",
         "X"
       );
     });
@@ -61,11 +67,16 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
       .catch((error: Error) => console.log(error));
   }, []);
 
+  const editarJogo = (id: string) => {
+    navigate(`/awards/edit-awards/${id}`);
+  };
+
   const removeAward = (id: string) => {
     remove(id)
       .then(() => fetchAwards())
       .catch((error: Error) => console.log(error));
   };
+
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -87,6 +98,7 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
             <StyledTableCell align="right">Criado por</StyledTableCell>
             <StyledTableCell align="right">Ano do Prêmio</StyledTableCell>
             <StyledTableCell align="right">Categorias</StyledTableCell>
+            <StyledTableCell align="right">Editar</StyledTableCell>
             <StyledTableCell align="right">Excluir</StyledTableCell>
           </TableRow>
         </TableHead>
@@ -104,6 +116,13 @@ export default function EnchancedTableAwards({ data, setAwards }: any) {
               <TableCell align="right">{row.created_by}</TableCell>
               <TableCell align="right">{row.year}</TableCell>
               <TableCell align="right">{row.categories}</TableCell>
+              <TableCell align="right">
+                <EditIcon
+                  sx={{ cursor: "pointer" }}
+                  color={"primary"}
+                  onClick={() => editarJogo(row.id)}
+                />
+              </TableCell>
               <TableCell
                 sx={{ cursor: "pointer" }}
                 align="right"

@@ -10,7 +10,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { create, fetch } from "../../../services/game-service/game-service";
+import {
+  create,
+  fetch,
+  fetchOne,
+  update,
+} from "../../../services/game-service/game-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
@@ -20,7 +25,7 @@ import { fetch as fetchAllDesigners } from "../../../services/designers-service/
 import { fetch as fetchAllPublishers } from "../../../services/publishers-service/publishers-service";
 import { fetch as fetchAllMechanisms } from "../../../services/mechanisms-service/mechanisms-service";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { toast, ToastContainer, TypeOptions } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -33,7 +38,7 @@ interface Categories {
 }
 
 export const CreateGame = () => {
-  const [games, setGames] = useState([]);
+  const [game, setGame] = useState<any>([]);
   const [categories, setCategories] = useState([]);
   const [designers, setDesigners] = useState([]);
   const [publishers, setPublishers] = useState([]);
@@ -44,21 +49,47 @@ export const CreateGame = () => {
   const [designersSelecionadas, setDesignersSelecionadas] = useState([]);
   const [mechanismsSelecionadas, setMechanismsSelecionadas] = useState([]);
   const [, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const params = useParams();
   const notify = (message: string, type: TypeOptions) =>
     toast(message, { type: type });
 
   useEffect(() => {
-    fetchGames();
     fetchCategories();
     fetchDesigners();
     fetchPublishers();
     fetchMechanisms();
+    fetchGames();
   }, []);
 
   const fetchGames = useCallback(() => {
-    fetch()
-      .then((r: any) => setGames(r.data))
+    if (!params.id) return;
+    fetchOne(params.id)
+      .then((r: any) => {
+        setGame(r.data);
+        const categories = r.data.categories.map((data: any) => data.category);
+        const publishers = r.data.publishers.map((data: any) => data.publisher);
+        const designersArr = r.data.designers.map((data: any) => data.design);
+        const mechanismsArr = r.data.mechanisms.map(
+          (data: any) => data.mechanism
+        );
+        setDefaultValues((prevState) => ({
+          ...prevState,
+          id_category: categories,
+          id_publisher: publishers,
+          id_design: designersArr,
+          id_mechanisms: mechanismsArr,
+        }));
+        setValue("name", r.data.name);
+        setValue("image", r.data.image);
+        setValue("weight", r.data.weight);
+        setValue("price", r.data.price);
+        setValue("playing_time", r.data.playing_time);
+        setValue("year_published", r.data.year_published);
+        setValue("playing_time", r.data.playing_time);
+        setValue("player_age", r.data.player_age);
+        setValue("num_players", r.data.num_players);
+        setValue("description", r.data.description);
+      })
       .catch((error: Error) => console.log(error));
   }, []);
 
@@ -107,49 +138,60 @@ export const CreateGame = () => {
       id_publisher: publishersArr,
       id_mechanisms: mechanismsArr,
     };
-    create(newData)
-      .then(() => {
-        fetchGames();
-        resetAsyncForm();
-        setResetField(!resetField);
-        notify("Jogo cadastrado!", "success");
-        // navigate("/game");
-      })
-      .catch(() => {
-        notify("Vixe! Deu ruim", "error");
-        setLoading(false);
-      });
+    if (params.id) {
+      update(params.id, newData)
+        .then(() => {
+          fetchGames();
+          resetAsyncForm();
+          setResetField(!resetField);
+          notify("Jogo atualizado!", "success");
+          // navigate("/game");
+        })
+        .catch(() => {
+          notify("Vixe! Deu ruim", "error");
+          setLoading(false);
+        });
+    } else {
+      create(newData)
+        .then(() => {
+          fetchGames();
+          resetAsyncForm();
+          setResetField(!resetField);
+          notify("Jogo cadastrado!", "success");
+          // navigate("/game");
+        })
+        .catch(() => {
+          notify("Vixe! Deu ruim", "error");
+          setLoading(false);
+        });
+    }
   };
 
+  const [defaultValues, setDefaultValues] = useState({
+    name: "",
+    description: "",
+    num_players: "",
+    player_age: "",
+    playing_time: "",
+    image: "",
+    price: 0,
+    weight: "",
+    year_published: "",
+    id_category: [],
+    id_publisher: [],
+    id_design: [],
+    id_mechanisms: [],
+  });
+
   // FORM
-  const { handleSubmit, control, formState, reset } = useForm({
-    defaultValues: {
-      name: "",
-      description: "",
-      num_players: "",
-      player_age: "",
-      playing_time: "",
-      price: 0,
-      weight: "",
-      year_published: "",
-      id_category: [],
-    },
+  const { handleSubmit, control, formState, reset, setValue } = useForm({
+    defaultValues,
   });
 
   const { errors } = formState;
 
   const resetAsyncForm = useCallback(async () => {
-    reset({
-      name: "",
-      description: "",
-      num_players: "",
-      player_age: "",
-      playing_time: "",
-      price: 0,
-      weight: "",
-      year_published: "",
-      id_category: [],
-    });
+    reset(defaultValues);
   }, [reset]);
 
   return (
@@ -343,6 +385,7 @@ export const CreateGame = () => {
                     control={control}
                   />
                 </Box>
+
                 <Box sx={{ width: "100%" }}>
                   {" "}
                   <Controller
@@ -405,6 +448,7 @@ export const CreateGame = () => {
                   data={categories}
                   setData={setCategoriesSelecionadas}
                   resetField={resetField}
+                  defaultValue={defaultValues.id_category}
                 />
                 <Asynchronous
                   id={"id_publisher"}
@@ -414,6 +458,7 @@ export const CreateGame = () => {
                   control={control}
                   setData={setPublishersSelecionadas}
                   resetField={resetField}
+                  defaultValue={defaultValues.id_publisher}
                 />
 
                 <Asynchronous
@@ -424,6 +469,7 @@ export const CreateGame = () => {
                   data={designers}
                   setData={setDesignersSelecionadas}
                   resetField={resetField}
+                  defaultValue={defaultValues.id_design}
                 />
                 <Asynchronous
                   id={"id_mechanisms"}
@@ -433,8 +479,35 @@ export const CreateGame = () => {
                   data={mechanisms}
                   setData={setMechanismsSelecionadas}
                   resetField={resetField}
+                  defaultValue={defaultValues.id_mechanisms}
                 />
               </Stack>
+
+              <Stack
+                sx={{ margin: "20px 0" }}
+                direction={{ xs: "column", sm: "row" }}
+                spacing={{ xs: 1, sm: 2, md: 4 }}
+              >
+                <Box sx={{ width: "100%" }}>
+                  {" "}
+                  <Controller
+                    render={({ field }: any) => (
+                      <TextField
+                        size={"small"}
+                        sx={{ width: "100%" }}
+                        label="Imagem"
+                        variant="outlined"
+                        {...field}
+                      />
+                    )}
+                    name="image"
+                    control={control}
+                  />
+                </Box>
+              </Stack>
+              {game.image && (
+                <img src={game.image} alt="image-game" width={250} />
+              )}
 
               <Box sx={{ marginTop: 2 }}>
                 <Button type="submit" variant="contained" color={"secondary"}>

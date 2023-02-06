@@ -73,19 +73,6 @@ export const DragaoDeOuro = () => {
             >
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <AddBoxIcon color={"secondary"} sx={{ fontSize: "26px" }} />
-                {/*<Typography*/}
-                {/*  variant="body1"*/}
-                {/*  component="div"*/}
-                {/*  sx={{*/}
-                {/*    textTransform: "none",*/}
-                {/*    fontFamily: "Roboto",*/}
-                {/*    fontWeight: 400,*/}
-                {/*    textDecoration: "none",*/}
-                {/*    marginLeft: "8px",*/}
-                {/*  }}*/}
-                {/*>*/}
-                {/*  Adicionar*/}
-                {/*</Typography>*/}
               </Box>
             </Link>
           </Box>
