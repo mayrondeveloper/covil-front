@@ -40,7 +40,7 @@ const menuListar = [
   //   route: "/awards/view-award-and-category",
   // },
   {
-    name: "Vencedores por premio e categoria",
+    name: "Consulte os prêmios e os jogos vencedores.",
     route: "/awards/view-award-and-category-places",
   },
 ];

@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { fetch } from "../../services/game-service/game-service";
 import { fetch as fetchAll } from "../../services/categories-service/categories-service";
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawerLeft";
 import Image from "../../../src/images/dragaodeouro.jpg";
 import { Link } from "react-router-dom";
@@ -43,19 +43,26 @@ export const HomePage = () => {
 
   return (
     <PersistentDrawerLeft>
+      <Typography
+        variant="h5"
+        component="h1"
+        sx={{ fontFamily: "Roboto", fontWeight: 600, margin: "80px 0 30px 0" }}
+      >
+        Cadastre
+      </Typography>
       <Box
         sx={{
           padding: 0,
-          margin: 0,
+          margin: "30px 0",
           display: "flex",
           flexDirection: "row",
-          height: "calc(100vh - 112px)",
+          flexWrap: "wrap",
+          alignContent: "flex-start",
           gap: 2,
         }}
       >
         <Paper
           sx={{
-            marginTop: "120px",
             height: "max-content",
             display: "flex",
             gap: 2,
@@ -106,7 +113,6 @@ export const HomePage = () => {
         </Paper>
         <Paper
           sx={{
-            marginTop: "120px",
             height: "max-content",
             display: "flex",
             gap: 2,
@@ -154,19 +160,124 @@ export const HomePage = () => {
             </CardActions>
           </Card>
         </Paper>
-        {/*<Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>*/}
-        {/*  <Typography*/}
-        {/*    variant="h5"*/}
-        {/*    component="h1"*/}
-        {/*    sx={{ fontFamily: "Roboto", fontWeight: 600 }}*/}
-        {/*  >*/}
-        {/*    Jogos*/}
-        {/*  </Typography>*/}
-
-        {/*  <Box sx={{ marginTop: 4, width: "100%" }}>*/}
-        {/*    <EnhancedTable data={games} setGames={setGames} />*/}
-        {/*  </Box>*/}
-        {/*</Paper>*/}
+        <Paper
+          sx={{
+            height: "max-content",
+            display: "flex",
+            gap: 2,
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <Card
+            sx={{
+              maxWidth: 345,
+              minHeight: 200,
+              display: "flex",
+              gap: 2,
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            {/*<CardMedia*/}
+            {/*  sx={{ height: 140 }}*/}
+            {/*  image={Image}*/}
+            {/*  title="dragaodeouro"*/}
+            {/*/>*/}
+            <CardContent>
+              <Typography
+                gutterBottom
+                variant="h5"
+                component="div"
+                fontWeight={"600"}
+              >
+                Cadastrar votos
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Cadastre votos para um prêmio específico.
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ padding: 2 }}>
+              <Link
+                to={"/awards/create-votes"}
+                style={{ textDecoration: "none", color: "#212121" }}
+              >
+                <Button size="medium" variant="contained" color={"secondary"}>
+                  Cadastrar
+                </Button>
+              </Link>
+            </CardActions>
+          </Card>
+        </Paper>
+      </Box>
+      <Typography
+        variant="h5"
+        component="h1"
+        sx={{ fontFamily: "Roboto", fontWeight: 600, margin: "80px 0 30px 0" }}
+      >
+        Consulte
+      </Typography>
+      <Box
+        sx={{
+          padding: 0,
+          margin: "30px 0",
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          alignContent: "flex-start",
+          height: "calc(100vh - 112px)",
+          gap: 2,
+        }}
+      >
+        <Paper
+          sx={{
+            height: "max-content",
+            display: "flex",
+            gap: 2,
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <Card
+            sx={{
+              maxWidth: 345,
+              minHeight: 200,
+              display: "flex",
+              gap: 2,
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            {/*<CardMedia*/}
+            {/*  sx={{ height: 140 }}*/}
+            {/*  image={Image}*/}
+            {/*  title="dragaodeouro"*/}
+            {/*/>*/}
+            <CardContent>
+              <Typography
+                gutterBottom
+                variant="h5"
+                component="div"
+                fontWeight={"600"}
+              >
+                Premiações
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Consulte os prêmios e os jogos vencedores.
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ padding: 2 }}>
+              <Link
+                to={"/awards/view-award-and-category-places"}
+                style={{ textDecoration: "none", color: "#212121" }}
+              >
+                <Button size="medium" variant="contained" color={"secondary"}>
+                  Consultar
+                </Button>
+              </Link>
+            </CardActions>
+          </Card>
+        </Paper>
       </Box>
     </PersistentDrawerLeft>
   );

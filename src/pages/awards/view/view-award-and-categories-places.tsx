@@ -1,6 +1,6 @@
 import { Box, Button, Divider, Paper, Stack, Typography } from "@mui/material";
 import { findAllByAwardAndCategory } from "../../../services/game-service/game-service";
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
@@ -10,6 +10,8 @@ import EnchancedTableAwardsCategoriesPlace from "../../../components/Table/encha
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 import DataGridDefaultWiners from "./DataGridWiners";
 import CardGame from "../../../components/CardGame/CardGame";
+import { Link } from "react-router-dom";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const defaultValues = {
   place: "1",
@@ -106,12 +108,31 @@ export const ViewAwardAndCategoryPlaces = () => {
         }}
       >
         <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "12px",
+              marginBottom: 4,
+            }}
+          >
+            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
+              Home
+            </Link>
+            <ChevronRightIcon sx={{ fontSize: "18px" }} />
+            <Link
+              to={"/game"}
+              style={{ textDecoration: "none", color: "#212121" }}
+            >
+              Listar jogo vencedor por prêmio e categoria
+            </Link>
+          </Box>
           <Typography
             variant="h5"
             component="h1"
             sx={{ fontFamily: "Roboto", fontWeight: 600 }}
           >
-            Listar votos
+            Listar prêmio
           </Typography>
 
           <Box sx={{ marginTop: 4 }}>
