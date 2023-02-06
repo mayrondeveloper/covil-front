@@ -13,18 +13,17 @@ import {
 import { create, fetch } from "../../../services/game-service/game-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { numPlayers, player_age } from "./data/data";
-import EnhancedTable from "../../../components/Table/enchanced-table/enchanced-table";
 import { fetch as fetchAllCategories } from "../../../services/categories-service/categories-service";
 import { fetch as fetchAllDesigners } from "../../../services/designers-service/designers-service";
 import { fetch as fetchAllPublishers } from "../../../services/publishers-service/publishers-service";
 import { fetch as fetchAllMechanisms } from "../../../services/mechanisms-service/mechanisms-service";
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 interface Categories {
   id: string;
   name: string;
@@ -45,9 +44,15 @@ export const CreateGame = () => {
   const [designersSelecionadas, setDesignersSelecionadas] = useState([]);
   const [mechanismsSelecionadas, setMechanismsSelecionadas] = useState([]);
   const [, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const notify = (message: string) => toast(message);
 
   useEffect(() => {
     fetchGames();
+    fetchCategories();
+    fetchDesigners();
+    fetchPublishers();
+    fetchMechanisms();
   }, []);
 
   const fetchGames = useCallback(() => {
@@ -56,18 +61,10 @@ export const CreateGame = () => {
       .catch((error: Error) => console.log(error));
   }, []);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
   const fetchCategories = useCallback(() => {
     fetchAllCategories()
       .then((r: any) => setCategories(r.data))
       .catch((error: Error) => console.log(error));
-  }, []);
-
-  useEffect(() => {
-    fetchDesigners();
   }, []);
 
   const fetchDesigners = useCallback(() => {
@@ -76,18 +73,10 @@ export const CreateGame = () => {
       .catch((error: Error) => console.log(error));
   }, []);
 
-  useEffect(() => {
-    fetchPublishers();
-  }, []);
-
   const fetchPublishers = useCallback(() => {
     fetchAllPublishers()
       .then((r: any) => setPublishers(r.data))
       .catch((error: Error) => console.log(error));
-  }, []);
-
-  useEffect(() => {
-    fetchMechanisms();
   }, []);
 
   const fetchMechanisms = useCallback(() => {
@@ -122,8 +111,13 @@ export const CreateGame = () => {
         fetchGames();
         resetAsyncForm();
         setResetField(!resetField);
+        notify("Jogo cadastrado!");
+        // navigate("/game");
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        notify("Vixe! Deu ruim");
+        setLoading(false);
+      });
   };
 
   // FORM
@@ -450,6 +444,7 @@ export const CreateGame = () => {
           </Box>
         </Paper>
       </Box>
+      <ToastContainer theme="dark" />
     </PersistentDrawerLeft>
   );
 };
