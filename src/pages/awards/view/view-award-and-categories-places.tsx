@@ -82,18 +82,58 @@ export const ViewAwardAndCategoryPlaces = () => {
       const votes = dt.votes.map(
         (vote: any) => `${vote.place}° (${vote.participant.name})`
       );
+
       const totalVotos = dt.votes.map((vote: any) => Number(vote.value_vote));
       let sum = totalVotos.reduce(function (soma: number, i: number) {
         return soma + i;
       });
+
+      const quantVotosPorColocacao: any = {
+        primeiro: [],
+        segundo: [],
+        terceiro: [],
+      };
+      dt.votes.map((vote: any) => {
+        if (vote.place === "1") {
+          quantVotosPorColocacao.primeiro.push(vote.place);
+        }
+        if (vote.place === "2") {
+          quantVotosPorColocacao.segundo.push(vote.place);
+        }
+        if (vote.place === "3") {
+          quantVotosPorColocacao.terceiro.push(vote.place);
+        }
+      });
+
+      console.log(dt.name, " ", quantVotosPorColocacao.primeiro.length);
+      console.log(dt.name, "total =>", sum);
+
       return {
         id: dt.id,
         game: dt.name,
+        quantVotos: quantVotosPorColocacao,
         votes: votes.join(" , "),
         total: sum,
       };
     });
-    setColocation(row.sort((a, b) => b.total - a.total).slice(0, 3));
+    setColocation(
+      row
+        .sort((a, b) => {
+          if (b.total === a.total) {
+            return b.quantVotos.primeiro.length - a.quantVotos.primeiro.length;
+          }
+
+          if (
+            b.total === a.total &&
+            b.quantVotos.primeiro.length === a.quantVotos.primeiro.length
+          ) {
+            return b.quantVotos.segundo.length - a.quantVotos.segundo.length;
+          }
+
+          return b.total - a.total;
+        })
+        .slice(0, 3)
+    );
   }, [data]);
 
   return (
@@ -194,6 +234,7 @@ export const ViewAwardAndCategoryPlaces = () => {
                     colocation.map((jogos: any, index: number) => {
                       return (
                         <CardGame
+                          key={index}
                           colocacao={index + 1}
                           jogo={jogos.game}
                           index={index}
