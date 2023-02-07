@@ -112,7 +112,6 @@ export const ViewAwardAndCategoryPlaces = () => {
           quantVotosPorColocacao.terceiro.push(vote.place);
         }
       });
-
       return {
         id: dt.id,
         game: dt.name,
@@ -121,6 +120,8 @@ export const ViewAwardAndCategoryPlaces = () => {
         votes: votes.join(" , "),
         total: sum,
         publisher: dt.publishers,
+        quantidadeDeJogadores: dt.num_players,
+        ano: dt.year_published,
       };
     });
     setColocation(
@@ -247,6 +248,8 @@ export const ViewAwardAndCategoryPlaces = () => {
                           image={jogos.image}
                           editora={jogos.publisher}
                           index={index}
+                          quantidadeDeJogadores={jogos.quantidadeDeJogadores}
+                          ano={jogos.ano}
                         />
                       );
                     })}

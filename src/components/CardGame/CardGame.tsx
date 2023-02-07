@@ -5,15 +5,21 @@ import {
   CardMedia,
   Typography,
   Box,
-  Grid,
-  Avatar,
 } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { deepOrange } from "@mui/material/colors";
-
-const CardGame = ({ colocacao, jogo, index, image, editora }: any) => {
+import GroupsIcon from "@mui/icons-material/Groups";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+const CardGame = ({
+  colocacao,
+  jogo,
+  index,
+  image,
+  editora,
+  ano,
+  quantidadeDeJogadores,
+}: any) => {
   const [publishers, setPublishers] = useState([]);
 
   function colorIcon() {
@@ -74,6 +80,47 @@ const CardGame = ({ colocacao, jogo, index, image, editora }: any) => {
             >
               <b>Editora:</b> {publishers.join(", ")}
             </Typography>
+
+            <Box sx={{ display: "flex", gap: 3 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignContent: "center",
+                  alignSelf: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <GroupsIcon
+                  sx={{
+                    fontSize: "24px",
+                    color: "dimgray",
+                    marginRight: "6px",
+                  }}
+                />
+                <Box sx={{ fointSize: "16px", color: "dimgray" }}>
+                  {quantidadeDeJogadores}
+                </Box>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignContent: "center",
+                  alignSelf: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CalendarMonthIcon
+                  sx={{
+                    fontSize: "18px",
+                    color: "dimgray",
+                    marginRight: "6px",
+                  }}
+                />
+                <Box sx={{ fointSize: "16px", color: "dimgray" }}>{ano}</Box>
+              </Box>
+            </Box>
           </Box>
         </CardContent>
       </CardActionArea>
