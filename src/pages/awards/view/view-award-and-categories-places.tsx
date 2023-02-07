@@ -119,15 +119,15 @@ export const ViewAwardAndCategoryPlaces = () => {
     setColocation(
       row
         .sort((a, b) => {
-          if (b.total === a.total) {
-            return b.quantVotos.primeiro.length - a.quantVotos.primeiro.length;
-          }
-
           if (
             b.total === a.total &&
             b.quantVotos.primeiro.length === a.quantVotos.primeiro.length
           ) {
             return b.quantVotos.segundo.length - a.quantVotos.segundo.length;
+          }
+
+          if (b.total === a.total) {
+            return b.quantVotos.primeiro.length - a.quantVotos.primeiro.length;
           }
 
           return b.total - a.total;
