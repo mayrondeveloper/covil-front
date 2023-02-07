@@ -1,4 +1,12 @@
-import { Box, Button, Divider, Paper, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Grid,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { findAllByAwardAndCategory } from "../../../services/game-service/game-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -111,6 +119,7 @@ export const ViewAwardAndCategoryPlaces = () => {
       return {
         id: dt.id,
         game: dt.name,
+        image: dt.image,
         quantVotos: quantVotosPorColocacao,
         votes: votes.join(" , "),
         total: sum,
@@ -174,7 +183,7 @@ export const ViewAwardAndCategoryPlaces = () => {
             Listar prêmio
           </Typography>
 
-          <Box sx={{ marginTop: 4 }}>
+          <Box sx={{ marginTop: 4, height: "calc(100% - 112px)" }}>
             <form
               onSubmit={handleSubmit((data) => {
                 sendAward(data);
@@ -237,6 +246,7 @@ export const ViewAwardAndCategoryPlaces = () => {
                           key={index}
                           colocacao={index + 1}
                           jogo={jogos.game}
+                          image={jogos.image}
                           index={index}
                         />
                       );
@@ -272,6 +282,8 @@ export const ViewAwardAndCategoryPlaces = () => {
                   flexDirection: "column",
                   alignItems: "center",
                   marginTop: 6,
+                  justifyContent: "center",
+                  height: "calc(100% - 112px)",
                 }}
               >
                 <EmptyState width={200} />
