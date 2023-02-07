@@ -203,12 +203,16 @@ export default function PersistentDrawerLeft({ children }: any) {
               position: "absolute",
               right: "50%",
               left: "50%",
-              top: "60px",
+              top: "50px",
               transform: "translate(-50px, -50px)",
             }}
           >
             <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
-              <img src="/covil.png" alt="" width={90} />
+              <img
+                src="https://may-bucket1.nyc3.cdn.digitaloceanspaces.com/dragao-de-ouro%2Fdragao-ouro.png"
+                alt=""
+                width={95}
+              />
             </Link>
           </Box>
           {/*<Typography variant="h6" noWrap component="div">*/}
