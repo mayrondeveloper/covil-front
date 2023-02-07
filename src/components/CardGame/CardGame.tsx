@@ -6,11 +6,16 @@ import {
   Typography,
   Box,
   Grid,
+  Avatar,
 } from "@mui/material";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import * as React from "react";
+import { useEffect, useState } from "react";
+import { deepOrange } from "@mui/material/colors";
 
-const CardGame = ({ colocacao, jogo, index, image }: any) => {
+const CardGame = ({ colocacao, jogo, index, image, editora }: any) => {
+  const [publishers, setPublishers] = useState([]);
+
   function colorIcon() {
     if (index + 1 === 1) {
       return "#ffd700";
@@ -20,6 +25,13 @@ const CardGame = ({ colocacao, jogo, index, image }: any) => {
       return "#debb2c";
     }
   }
+
+  useEffect(() => {
+    const editorasArr = editora.map(
+      (edit: { publisher: { name: string } }): any => edit.publisher.name
+    );
+    setPublishers(editorasArr);
+  }, [editora]);
 
   return (
     <Card sx={{ width: "33%" }}>
@@ -33,7 +45,7 @@ const CardGame = ({ colocacao, jogo, index, image }: any) => {
         />
 
         <CardContent sx={{ display: "flex" }}>
-          <EmojiEventsIcon sx={{ color: colorIcon }} />
+          <EmojiEventsIcon sx={{ color: colorIcon, fontSize: "35px" }} />
           <Box sx={{ margin: "-4px 0px 0px 9px" }}>
             <Typography
               sx={{
@@ -53,6 +65,14 @@ const CardGame = ({ colocacao, jogo, index, image }: any) => {
               color={"primary"}
             >
               {jogo}
+            </Typography>
+            <Typography
+              gutterBottom
+              variant="caption"
+              component="div"
+              color={"dimgray"}
+            >
+              <b>Editora:</b> {publishers.join(", ")}
             </Typography>
           </Box>
         </CardContent>

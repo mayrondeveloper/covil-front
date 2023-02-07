@@ -113,9 +113,6 @@ export const ViewAwardAndCategoryPlaces = () => {
         }
       });
 
-      console.log(dt.name, " ", quantVotosPorColocacao.primeiro.length);
-      console.log(dt.name, "total =>", sum);
-
       return {
         id: dt.id,
         game: dt.name,
@@ -123,6 +120,7 @@ export const ViewAwardAndCategoryPlaces = () => {
         quantVotos: quantVotosPorColocacao,
         votes: votes.join(" , "),
         total: sum,
+        publisher: dt.publishers,
       };
     });
     setColocation(
@@ -247,6 +245,7 @@ export const ViewAwardAndCategoryPlaces = () => {
                           colocacao={index + 1}
                           jogo={jogos.game}
                           image={jogos.image}
+                          editora={jogos.publisher}
                           index={index}
                         />
                       );
