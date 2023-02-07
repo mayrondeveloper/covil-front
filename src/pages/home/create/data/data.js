@@ -10,6 +10,8 @@ export const numPlayers = [
   "2-5",
 ];
 
+export const colocacoes = ["1", "2", "3"];
+
 export const player_age = [
   "1",
   "2",

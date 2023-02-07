@@ -1,15 +1,17 @@
 import {
   Box,
   Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import { create, fetch } from "../../../services/votes/votes-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import ResponsiveAppBar from "../../../components/AppBar/ResponsiveAppBar";
 import EnchancedTableVotes from "../../../components/Table/enchanced-table/enchanced-table-votes";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
@@ -19,17 +21,17 @@ import { fetch as fetchAllAwards } from "../../../services/awards-service/awards
 import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 import { Link } from "react-router-dom";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-
-const defaultValues = {
-  place: "1",
-  participant: [],
-  category: [],
-  game: [],
-  id_award: [],
-};
+import { colocacoes, numPlayers } from "../../home/create/data/data";
 
 export const Votes = () => {
   const [resetField, setResetField] = useState(false);
+  const [defaultValues, setDefaultValues] = useState({
+    place: "1",
+    participant: [],
+    category: [],
+    game: [],
+    id_award: [],
+  });
   const [, setLoading] = useState(false);
   const [awards, setAwards] = useState([]);
   const [awardsSelecionadas, setAwardsSelecionadas] = useState<any>([]);
@@ -60,8 +62,10 @@ export const Votes = () => {
   };
 
   useEffect(() => {
-    if (awards.length) return;
     fetchAwards();
+    fetchCategory();
+    fetchParticipants();
+    fetchGames();
   }, []);
 
   const fetchAwards = useCallback(() => {
@@ -72,22 +76,12 @@ export const Votes = () => {
       .catch((error: Error) => console.log(error));
   }, []);
 
-  useEffect(() => {
-    if (categories.length) return;
-    fetchCategory();
-  }, []);
-
   const fetchCategory = useCallback(() => {
     fetchCategories()
       .then((r: any) => {
         setCategories(r.data);
       })
       .catch((error: Error) => console.log(error));
-  }, []);
-
-  useEffect(() => {
-    if (jogos.length) return;
-    fetchGames();
   }, []);
 
   const fetchGames = useCallback(() => {
@@ -98,10 +92,7 @@ export const Votes = () => {
       .catch((error: Error) => console.log(error));
   }, []);
 
-  useEffect(() => {
-    if (participantes.length) return;
-    fetchParticipants();
-  }, []);
+  useEffect(() => {}, []);
 
   const fetchParticipants = useCallback(() => {
     fetchAllParticipants()
@@ -114,7 +105,7 @@ export const Votes = () => {
   // FORM
   const [data, setData] = useState(null);
 
-  const { handleSubmit, control, formState, reset } = useForm({
+  const { handleSubmit, control, formState, reset, setValue } = useForm({
     defaultValues,
   });
   const { errors } = formState;
@@ -188,29 +179,34 @@ export const Votes = () => {
                 spacing={{ xs: 1, sm: 2, md: 4 }}
               >
                 <Box sx={{ width: "100%" }}>
+                  {" "}
                   <Controller
                     render={({ field }: any) => (
-                      <TextField
-                        size={"small"}
-                        sx={{ width: "100%" }}
-                        label="Colocação"
-                        variant="outlined"
-                        {...field}
-                      />
+                      <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">
+                          Colocação
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          variant="outlined"
+                          size={"small"}
+                          label="Colocação"
+                          {...field}
+                        >
+                          {colocacoes.map((colocacao, index) => {
+                            return (
+                              <MenuItem key={index} value={colocacao}>
+                                {colocacao}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                      </FormControl>
                     )}
                     name="place"
-                    rules={{ required: true }}
                     control={control}
                   />
-                  {errors.place?.type === "required" && (
-                    <Typography
-                      role="alert"
-                      color={"error"}
-                      sx={{ fontSize: "12px" }}
-                    >
-                      Campo obrigatório
-                    </Typography>
-                  )}
                 </Box>
                 <Asynchronous
                   multiple={false}
@@ -221,6 +217,7 @@ export const Votes = () => {
                   name={"id_award"}
                   id={"id_award"}
                   label={"Prêmio"}
+                  defaultValue={defaultValues.id_award}
                 />
                 <Asynchronous
                   multiple={false}
@@ -257,7 +254,7 @@ export const Votes = () => {
                   resetField={resetField}
                   name={"participant"}
                   id={"participant"}
-                  label={"Participantes"}
+                  label={"Quem vai votar?"}
                 />
                 <Box sx={{ width: "100%" }}>
                   <Button type="submit" variant="contained" color={"secondary"}>
