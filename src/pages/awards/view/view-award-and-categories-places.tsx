@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Divider, Paper, Stack, Typography } from "@mui/material";
 import { findAllByAwardAndCategory } from "../../../services/game-service/game-service";
 import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -264,12 +256,6 @@ export const ViewAwardAndCategoryPlaces = () => {
             {data.length >= 1 ? (
               <Paper elevation={0} sx={{ marginTop: 6, width: "100%" }}>
                 <Box sx={{ width: "100%" }}>
-                  {/*<EnchancedTableAwardsCategoriesPlace*/}
-                  {/*  data={data}*/}
-                  {/*  setData={setData}*/}
-                  {/*  refresh={resetField}*/}
-                  {/*/>*/}
-
                   <DataGridDefaultWiners
                     data={data}
                     setAwards={setData}
