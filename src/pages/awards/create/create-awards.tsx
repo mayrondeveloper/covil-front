@@ -8,7 +8,6 @@ import {
 } from "@mui/material";
 import {
   create,
-  fetch,
   fetchOne,
   update,
 } from "../../../services/awards-service/awards-service";
@@ -43,7 +42,7 @@ export const CreateAwards = () => {
     created_by: "Admin",
     description: "",
     image: "",
-    year: "2023",
+    year: "2025",
     id_game: gamesSelecionados,
     id_award_categories: [],
     id_participant: [],
@@ -103,7 +102,7 @@ export const CreateAwards = () => {
           fetchAwards();
           resetAsyncForm();
           setResetField(!resetField);
-          notify("Prêmio atualizado!", "success");
+          notify("Atualizado!", "success");
         })
         .catch((error) => {
           notify("Vixe! Deu ruim", "error");

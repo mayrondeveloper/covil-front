@@ -78,63 +78,45 @@ export const ViewAwardAndCategoryPlaces = () => {
   const [colocation, setColocation] = useState<any>([] || null);
 
   useEffect(() => {
-    const row = data?.map((dt: any) => {
+    if (!data) return;
+
+    const row = data.map((dt: any) => {
       const votes = dt.votes.map(
-        (vote: any) => `${vote.place}° (${vote.participant.name})`
-      );
+          (vote: any) => `${vote.place}° (${vote.participant.name})`
+      ).join(" , ");
 
-      const totalVotos = dt.votes.map((vote: any) => Number(vote.value_vote));
-      let sum = totalVotos.reduce(function (soma: number, i: number) {
-        return soma + i;
-      });
+      const total = dt.votes.reduce((sum: number, vote: any) => sum + Number(vote.value_vote), 0);
 
-      const quantVotosPorColocacao: any = {
-        primeiro: [],
-        segundo: [],
-        terceiro: [],
+      const quantVotosPorColocacao = {
+        primeiro: dt.votes.filter((vote: any) => vote.place === "1").length,
+        segundo: dt.votes.filter((vote: any) => vote.place === "2").length,
+        terceiro: dt.votes.filter((vote: any) => vote.place === "3").length,
       };
-      dt.votes.map((vote: any) => {
-        if (vote.place === "1") {
-          quantVotosPorColocacao.primeiro.push(vote.place);
-        }
-        if (vote.place === "2") {
-          quantVotosPorColocacao.segundo.push(vote.place);
-        }
-        if (vote.place === "3") {
-          quantVotosPorColocacao.terceiro.push(vote.place);
-        }
-      });
+
       return {
         id: dt.id,
         game: dt.name,
         image: dt.image,
         quantVotos: quantVotosPorColocacao,
-        votes: votes.join(" , "),
-        total: sum,
+        votes,
+        total,
         publisher: dt.publishers,
         quantidadeDeJogadores: dt.num_players,
         ano: dt.year_published,
       };
     });
+
     setColocation(
-      row
-        .sort((a, b) => {
-          if (
-            b.total === a.total &&
-            b.quantVotos.primeiro.length === a.quantVotos.primeiro.length
-          ) {
-            return b.quantVotos.segundo.length - a.quantVotos.segundo.length;
-          }
-
-          if (b.total === a.total) {
-            return b.quantVotos.primeiro.length - a.quantVotos.primeiro.length;
-          }
-
-          return b.total - a.total;
-        })
-        .slice(0, 3)
+        row
+            .sort((a, b) => {
+              if (b.total !== a.total) return b.total - a.total; // Primeiro critério: total de pontos
+              if (b.quantVotos.primeiro !== a.quantVotos.primeiro) return b.quantVotos.primeiro - a.quantVotos.primeiro; // Segundo critério: mais votos em 1º lugar
+              return b.quantVotos.segundo - a.quantVotos.segundo; // Terceiro critério: mais votos em 2º lugar
+            })
+            .slice(0, 3)
     );
   }, [data]);
+
 
   return (
     <PersistentDrawerLeft>

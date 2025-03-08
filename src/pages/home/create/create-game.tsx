@@ -178,26 +178,13 @@ export const CreateGame = () => {
                   {" "}
                   <Controller
                     render={({ field }: any) => (
-                      <FormControl fullWidth>
-                        <InputLabel id="demo-simple-select-label">
-                          Num. Jogadores
-                        </InputLabel>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="demo-simple-select"
-                          variant="outlined"
-                          label="Num. Jogadores"
-                          {...field}
-                        >
-                          {numPlayers.map((players, index) => {
-                            return (
-                              <MenuItem key={index} value={players}>
-                                {players}
-                              </MenuItem>
-                            );
-                          })}
-                        </Select>
-                      </FormControl>
+                        <TextField
+                            size={"small"}
+                            sx={{ width: "100%" }}
+                            label="N° de jogadores"
+                            variant="outlined"
+                            {...field}
+                        />
                     )}
                     name="num_players"
                     control={control}

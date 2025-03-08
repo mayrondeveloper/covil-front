@@ -50,13 +50,14 @@ export const HomePage = () => {
           marginBottom: 4,
         }}
       >
-        <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
-          Home
-        </Link>
-        <ChevronRightIcon sx={{ fontSize: "18px" }} />
-        <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
-          Dragão de ouro
-        </Link>
+          <Typography
+              variant="h2"
+              component="h1"
+              color={"#e85300"}
+              sx={{ fontFamily: "Roboto", fontWeight: 600, margin: "20px 0 20px 0" }}
+          >
+          Dragão de ouro 2025
+        </Typography>
       </Box>
       <Typography
         variant="h6"
@@ -107,7 +108,7 @@ export const HomePage = () => {
                 component="div"
                 fontWeight={"600"}
               >
-                Cadastrar Jogo
+                Jogos
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Cadastre um jogo com categoria, mecânica e outros diversos
@@ -116,7 +117,7 @@ export const HomePage = () => {
             </CardContent>
             <CardActions sx={{ padding: 2 }}>
               <Link
-                to={"/game/create-game"}
+                to={"/game"}
                 style={{ textDecoration: "none", color: "#212121" }}
               >
                 <Button size="medium" variant="contained" color={"secondary"}>
@@ -157,7 +158,7 @@ export const HomePage = () => {
                 component="div"
                 fontWeight={"600"}
               >
-                Cadastrar prêmio
+                Prêmios
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Cadastrar um prêmio com jogos, categorias e participantes.
@@ -165,7 +166,7 @@ export const HomePage = () => {
             </CardContent>
             <CardActions sx={{ padding: 2 }}>
               <Link
-                to={"/awards/create-awards"}
+                to={"/awards"}
                 style={{ textDecoration: "none", color: "#212121" }}
               >
                 <Button size="medium" variant="contained" color={"secondary"}>
@@ -206,7 +207,7 @@ export const HomePage = () => {
                 component="div"
                 fontWeight={"600"}
               >
-                Cadastrar votos
+                Votos
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Cadastre votos para um prêmio específico.
@@ -214,7 +215,7 @@ export const HomePage = () => {
             </CardContent>
             <CardActions sx={{ padding: 2 }}>
               <Link
-                to={"/awards/create-votes"}
+                to={"/awards/create-new-votes"}
                 style={{ textDecoration: "none", color: "#212121" }}
               >
                 <Button size="medium" variant="contained" color={"secondary"}>
@@ -225,14 +226,6 @@ export const HomePage = () => {
           </Card>
         </Paper>
       </Box>
-      <Typography
-        variant="h6"
-        component="h2"
-        color={"#e85300"}
-        sx={{ fontFamily: "Roboto", fontWeight: 600, margin: "80px 0 30px 0" }}
-      >
-        Consulte
-      </Typography>
       <Box
         sx={{
           padding: 0,
@@ -240,54 +233,9 @@ export const HomePage = () => {
           display: "flex",
           flexDirection: "row",
           alignContent: "flex-start",
-          height: "calc(100vh - 112px)",
           gap: 2,
         }}
       >
-        <Paper
-          sx={{
-            height: "max-content",
-            width: "100%",
-            display: "flex",
-            gap: 2,
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          <Card
-            sx={{
-              minHeight: 200,
-              display: "flex",
-              gap: 2,
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            <CardContent>
-              <Typography
-                gutterBottom
-                variant="h5"
-                component="div"
-                fontWeight={"600"}
-              >
-                Jogos
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Veja a lista de jogos, edite e delete items.
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ padding: 2 }}>
-              <Link
-                to={"/game"}
-                style={{ textDecoration: "none", color: "#212121" }}
-              >
-                <Button size="medium" variant="contained" color={"secondary"}>
-                  Ver jogos
-                </Button>
-              </Link>
-            </CardActions>
-          </Card>
-        </Paper>
         <Paper
           sx={{
             height: "max-content",

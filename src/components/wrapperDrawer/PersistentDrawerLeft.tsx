@@ -30,7 +30,7 @@ const menu = [
   },
   {
     name: "Votos",
-    route: "/awards/create-votes",
+    route: "/awards/create-new-votes",
   },
 ];
 

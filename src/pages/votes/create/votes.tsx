@@ -154,7 +154,7 @@ export const Votes = () => {
             </Link>
             <ChevronRightIcon sx={{ fontSize: "18px" }} />
             <Link
-              to={"/awards/create-votes"}
+              to={"/awards/create-new-votes"}
               style={{ textDecoration: "none", color: "#212121" }}
             >
               Cadastrar jogo

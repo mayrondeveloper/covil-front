@@ -15,6 +15,8 @@ import { DragaoDeOuro } from "./pages/dragao-de-ouro/create/dragao-de-ouro";
 import { CreateAwardParticipants } from "./pages/award-participants/create/create-award-participants";
 import { ViewAwardAndCategory } from "./pages/awards/view/view-award-and-categories";
 import { ViewAwardAndCategoryPlaces } from "./pages/awards/view/view-award-and-categories-places";
+import {AddByLink} from "./pages/games/add-by-link/add-by-link";
+import {NewVotes} from "./pages/votes/create/new-votes";
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +56,10 @@ export const router = createBrowserRouter([
     element: <CreateDesigners />,
   },
   {
+    path: "/game/add-by-link",
+    element: <AddByLink />,
+  },
+  {
     path: "/awards",
     element: <DragaoDeOuro />,
   },
@@ -72,6 +78,10 @@ export const router = createBrowserRouter([
   {
     path: "/awards/create-votes",
     element: <Votes />,
+  },
+  {
+    path: "/awards/create-new-votes",
+    element: <NewVotes />,
   },
   {
     path: "/awards/create-participants",

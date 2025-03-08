@@ -3,6 +3,7 @@ import { axiosInstance } from "../axios/axios";
 const baseURL = process.env.REACT_APP_BASE_PATH;
 
 export const fetch = () => axiosInstance.get(`${baseURL}/award-categories`);
+export const fetchByAward = (award) => axiosInstance.get(`${baseURL}/award-categories?award=${award}`);
 
 export const create = (data) =>
   axiosInstance.post(`${baseURL}/award-categories`, data);
