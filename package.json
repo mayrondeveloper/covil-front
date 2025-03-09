@@ -49,8 +49,7 @@
   },
   "engines": {
     "node": "17.9.1",
-    "npm": "8.11.0",
-    "yarn": "1.22.5"
+    "npm": "8.11.0"
   },
   "browserslist": {
     "production": [
