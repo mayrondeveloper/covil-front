@@ -5,12 +5,12 @@ import { useForm } from "react-hook-form";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { fetch as fetchCategories } from "../../../services/awards-categories-service/awards-categories-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
-import PersistentDrawerLeft from "../../../components/wrapperDrawer/PersistentDrawerLeft";
 import DataGridDefaultWiners from "./DataGridWiners";
 import CardGame from "../../../components/CardGame/CardGame";
-import { Link } from "react-router-dom";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { ReactComponent as EmptyState } from "../../../images/empty-state/empty.svg";
+import PageLayout from "../../../components/Layout/PageLayout";
+import PageHeader from "../../../components/Layout/PageHeader";
+import SectionCard from "../../../components/Layout/SectionCard";
 
 const defaultValues = {
   place: "1",
@@ -48,8 +48,19 @@ export const ViewAwardAndCategoryPlaces = () => {
     fetchAllAwards()
       .then((r: any) => {
         setAwards(r.data);
+        const latest = [...r.data].sort((a: any, b: any) => {
+          const ya = Number(a.year) || 0;
+          const yb = Number(b.year) || 0;
+          if (yb !== ya) return yb - ya;
+          return String(b.id).localeCompare(String(a.id));
+        })[0];
+        if (latest) {
+          setAwardsSelecionadas(latest);
+          setValue("id_award", latest as any);
+        }
       })
       .catch((error: Error) => console.log(error));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -66,9 +77,9 @@ export const ViewAwardAndCategoryPlaces = () => {
   }, []);
 
   // FORM
-  const [data, setData] = useState([] || null);
+  const [data, setData] = useState<any[]>([]);
 
-  const { handleSubmit, control, formState, reset } = useForm({
+  const { handleSubmit, control, formState, reset, setValue } = useForm({
     defaultValues,
   });
   const { errors } = formState;
@@ -119,44 +130,18 @@ export const ViewAwardAndCategoryPlaces = () => {
 
 
   return (
-    <PersistentDrawerLeft>
-      <Box
-        sx={{
-          padding: 0,
-          display: "flex",
-          flexDirection: "row",
-          height: "calc(100vh - 112px)",
-        }}
-      >
-        <Paper elevation={0} sx={{ padding: "30px 20px", width: "100%" }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              fontSize: "12px",
-              marginBottom: 4,
-            }}
-          >
-            <Link to={"/"} style={{ textDecoration: "none", color: "#212121" }}>
-              Home
-            </Link>
-            <ChevronRightIcon sx={{ fontSize: "18px" }} />
-            <Link
-              to={"/game"}
-              style={{ textDecoration: "none", color: "#212121" }}
-            >
-              Listar jogo vencedor por prêmio e categoria
-            </Link>
-          </Box>
-          <Typography
-            variant="h5"
-            component="h1"
-            sx={{ fontFamily: "Roboto", fontWeight: 600 }}
-          >
-            Listar prêmio
-          </Typography>
-
-          <Box sx={{ marginTop: 4, height: "calc(100% - 112px)" }}>
+    <PageLayout>
+      <PageHeader
+        eyebrow="Resultados"
+        title="Vencedores por colocação"
+        subtitle="Selecione o prêmio e a categoria para visualizar o ranking final."
+        crumbs={[
+          { label: "Início", to: "/" },
+          { label: "Premiação", to: "/awards" },
+          { label: "Vencedores por colocação" },
+        ]}
+      />
+      <SectionCard><Box>
             <form
               onSubmit={handleSubmit((data) => {
                 sendAward(data);
@@ -287,8 +272,7 @@ export const ViewAwardAndCategoryPlaces = () => {
               </Box>
             )}
           </Box>
-        </Paper>
-      </Box>
-    </PersistentDrawerLeft>
+      </SectionCard>
+    </PageLayout>
   );
 };

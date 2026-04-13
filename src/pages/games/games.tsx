@@ -1,136 +1,328 @@
-import EnhancedTable from "../../components/Table/enchanced-table/enchanced-table";
-import {Box, Button, Paper, Typography} from "@mui/material";
-import {fetch} from "../../services/game-service/game-service";
-import {fetch as fetchAll} from "../../services/categories-service/categories-service";
-import React, {useEffect, useState, useCallback} from "react";
-import PersistentDrawerLeft from "../../components/wrapperDrawer/PersistentDrawerLeft";
-import {Link} from "react-router-dom";
-import AddBoxIcon from "@mui/icons-material/AddBox";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import { Link, useNavigate } from "react-router-dom";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import LinkRoundedIcon from "@mui/icons-material/LinkRounded";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import { fetchPage, deleteGame } from "../../services/game-service/game-service";
 import EmptyState from "../../components/Empty/empty-state";
+import PageLayout from "../../components/Layout/PageLayout";
+import PageHeader from "../../components/Layout/PageHeader";
+import SectionCard from "../../components/Layout/SectionCard";
+import { GenericTable } from "../../components/Table/GenericTable";
+import { Game } from "../../services/types";
+import { useNotification } from "../../hooks/use-notification";
+import SearchField from "../../components/Form/Field/SearchField";
+import { useTableUrlState } from "../../hooks/use-table-url-state";
+import { useUndoable } from "../../hooks/use-undoable";
+
+const refList = (list: any, key: "category" | "publisher" | "design" | "mechanism"): string[] =>
+  Array.isArray(list)
+    ? list.map((item: any) => item?.[key]?.name ?? item?.name ?? "").filter(Boolean)
+    : [];
+
+const ChipList = ({ items, max = 2 }: { items: string[]; max?: number }) => {
+  if (items.length === 0) return <Typography variant="body2" color="text.disabled">—</Typography>;
+  const visible = items.slice(0, max);
+  const extra = items.length - visible.length;
+  return (
+    <Stack direction="row" gap={0.5} flexWrap="wrap" alignItems="center">
+      {visible.map((label, i) => (
+        <Chip key={i} size="small" label={label} variant="outlined" sx={{ height: 22, fontSize: 11 }} />
+      ))}
+      {extra > 0 && (
+        <Tooltip title={items.slice(max).join(", ")}>
+          <Chip
+            size="small"
+            label={`+${extra}`}
+            sx={{ height: 22, fontSize: 11, bgcolor: "background.default" }}
+          />
+        </Tooltip>
+      )}
+    </Stack>
+  );
+};
 
 export const Games = () => {
-    const [games, setGames] = useState([]);
-    const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
+  const { success, error } = useNotification();
+  const undoable = useUndoable();
+  const [games, setGames] = useState<Game[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState<Game | null>(null);
+  const url = useTableUrlState({ defaultRowsPerPage: 10 });
+  const { page, rowsPerPage, q } = url;
+  const setPage = url.setPage;
+  const setRowsPerPage = url.setRowsPerPage;
+  const setQ = url.setQ;
+  const sort = { orderBy: url.orderBy, order: url.order, set: url.setSort };
 
-    useEffect(() => {
-        fetchGames();
-    }, []);
+  const fetchGames = useCallback(() => {
+    setLoading(true);
+    fetchPage({
+      page,
+      limit: rowsPerPage,
+      q: q || undefined,
+      orderBy: sort.orderBy,
+      order: sort.order,
+    })
+      .then((r) => {
+        setGames(r.data.data);
+        setTotal(r.data.total);
+      })
+      .finally(() => setLoading(false));
+  }, [page, rowsPerPage, q, sort.orderBy, sort.order]);
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
+  useEffect(() => {
+    fetchGames();
+  }, [fetchGames]);
 
-    const fetchGames = useCallback(() => {
-        fetch()
-            .then((r: any) => setGames(r.data))
-            .catch((error: Error) => console.log(error));
-    }, []);
+  const onDeleteConfirmed = () => {
+    if (!confirmDelete) return;
+    const row = confirmDelete;
+    setConfirmDelete(null);
+    const previous = games;
+    setGames((prev) => prev.filter((g) => g.id !== row.id));
+    undoable.run({
+      message: `Jogo "${row.name}" removido.`,
+      onCommit: async () => {
+        try {
+          await deleteGame(row.id);
+          if (games.length === 1 && page > 1) setPage(page - 1);
+          else fetchGames();
+        } catch {
+          setGames(previous);
+          error("Não foi possível remover o jogo.");
+        }
+      },
+      onUndo: () => setGames(previous),
+    });
+  };
 
-    const fetchCategories = useCallback(() => {
-        fetchAll()
-            .then((r: any) => setCategories(r.data))
-            .catch((error: Error) => console.log(error));
-    }, []);
+  const editarJogo = (row: Game) => navigate(`/game/edit-game/${row.id}`);
 
-    return (
-        <PersistentDrawerLeft>
-            <Box
-                sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                }}
+  const isFiltering = q.trim().length > 0;
+  const showEmpty = !loading && total === 0;
+
+  return (
+    <PageLayout>
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Jogos"
+        subtitle="Lista de todos os jogos cadastrados. Adicione manualmente ou importe a partir de uma URL externa."
+        crumbs={[{ label: "Início", to: "/" }, { label: "Jogos" }]}
+        actions={
+          <Stack direction="row" gap={1.5} flexWrap="wrap">
+            <Button
+              component={Link}
+              to="/game/add-by-link"
+              variant="outlined"
+              startIcon={<LinkRoundedIcon />}
             >
-                <Paper elevation={0} sx={{padding: "30px 20px", width: "100%"}}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            fontSize: "12px",
-                            marginBottom: 4,
-                        }}
-                    >
-                        <Link to={"/"} style={{textDecoration: "none", color: "#212121"}}>
-                            Home
-                        </Link>
-                        <ChevronRightIcon sx={{fontSize: "18px"}}/>
-                        <Link
-                            to={"/game"}
-                            style={{textDecoration: "none", color: "#212121"}}
-                        >
-                            Jogos
-                        </Link>
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography
-                            variant="h5"
-                            component="h1"
-                            sx={{fontFamily: "Roboto", fontWeight: 600}}
-                        >
-                            Jogos
-                        </Typography>
+              Adicionar via link
+            </Button>
+            <Button
+              component={Link}
+              to="/game/create-game"
+              variant="contained"
+              color="secondary"
+              startIcon={<AddRoundedIcon />}
+            >
+              Novo jogo
+            </Button>
+          </Stack>
+        }
+      />
 
-                        {games.length >= 1 && (
-                            <Box style={{display: "flex"}}>
-                                <Link
-                                    to={"/game/create-game"}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        textDecoration: "none",
-                                        color: "#212121"
-                                    }}
-                                >
-                                    <Button style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center"
-                                    }}><AddBoxIcon color={"secondary"}
-                                                   sx={{fontSize: "18px", padding: 0, margin: 0}}/> Adicionar
-                                        manualmente</Button>
-                                </Link>
-                                <Link
-                                    to={"/game/add-by-link"}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        textDecoration: "none",
-                                        color: "#212121"
-                                    }}
-                                >
-                                    <Button style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center"
-                                    }}><AddBoxIcon color={"secondary"}
-                                                   sx={{fontSize: "18px", padding: 0, margin: 0}}/> Adicionar via
-                                        link</Button>
-                                </Link>
-                            </Box>
-                        )}
-                    </Box>
-
-                    {games.length >= 1 ? (
-                        <Box sx={{marginTop: 4, width: "100%"}}>
-                            <EnhancedTable data={games} setGames={setGames}/>
-                        </Box>
+      {showEmpty && !isFiltering ? (
+        <SectionCard>
+          <Box sx={{ py: 4 }}>
+            <EmptyState
+              title="Nenhum jogo cadastrado"
+              subtitle="Comece adicionando um jogo manualmente ou importando-o por URL."
+              button={{ title: "Adicionar jogo", url: "/game/create-game" }}
+            />
+          </Box>
+        </SectionCard>
+      ) : (
+        <SectionCard
+          description={
+            loading
+              ? "Carregando…"
+              : isFiltering
+              ? `${total} ${total === 1 ? "jogo encontrado" : "jogos encontrados"} para "${q}".`
+              : `${total} ${total === 1 ? "jogo" : "jogos"} no catálogo.`
+          }
+        >
+          <GenericTable<Game>
+            data={games}
+            rowKey={(g) => g.id}
+            columns={[
+              {
+                header: "Jogo",
+                sortField: "name",
+                render: (g: any) => (
+                  <Stack
+                    direction="row"
+                    gap={1.5}
+                    alignItems="center"
+                    onClick={() => editarJogo(g)}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover .game-name": { color: "secondary.main" },
+                    }}
+                  >
+                    {g.image ? (
+                      <Avatar variant="rounded" src={g.image} sx={{ width: 44, height: 44 }} />
                     ) : (
-                        <EmptyState
-                            title={"Nenhum jogo cadastrado"}
-                            subtitle={"Clique no botão abaixo para cadastrar um novo jogo"}
-                            button={{title: "Adicionar jogo", url: ""}}
-                        />
+                      <Avatar
+                        variant="rounded"
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          bgcolor: (t) => `${t.palette.secondary.main}1a`,
+                          color: "secondary.main",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {g.name?.[0]?.toUpperCase() ?? "?"}
+                      </Avatar>
                     )}
-                </Paper>
-            </Box>
-        </PersistentDrawerLeft>
-    );
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        className="game-name"
+                        sx={{ fontWeight: 600, lineHeight: 1.2, transition: "color 150ms" }}
+                        noWrap
+                      >
+                        {g.name}
+                      </Typography>
+                      <Stack direction="row" gap={1} alignItems="center" sx={{ mt: 0.25 }}>
+                        {g.year_published && (
+                          <Stack direction="row" gap={0.4} alignItems="center">
+                            <CalendarTodayRoundedIcon
+                              sx={{ fontSize: 11, color: "text.disabled" }}
+                            />
+                            <Typography variant="caption" color="text.disabled">
+                              {g.year_published}
+                            </Typography>
+                          </Stack>
+                        )}
+                        {g.num_players && (
+                          <Stack direction="row" gap={0.4} alignItems="center">
+                            <GroupsRoundedIcon
+                              sx={{ fontSize: 12, color: "text.disabled" }}
+                            />
+                            <Typography variant="caption" color="text.disabled">
+                              {g.num_players}
+                            </Typography>
+                          </Stack>
+                        )}
+                        {g.playing_time && (
+                          <Typography variant="caption" color="text.disabled">
+                            · {g.playing_time}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Stack>
+                ),
+              },
+              {
+                header: "Categorias",
+                hideOnMobile: true,
+                render: (g: any) => <ChipList items={refList(g.categories, "category")} />,
+              },
+              {
+                header: "Editora",
+                hideOnMobile: true,
+                width: 180,
+                render: (g: any) => (
+                  <ChipList items={refList(g.publishers, "publisher")} max={1} />
+                ),
+              },
+            ]}
+            actions={[
+              {
+                icon: <OpenInNewRoundedIcon fontSize="small" />,
+                color: "default",
+                onClick: editarJogo,
+                tooltip: "Abrir / editar",
+              },
+              {
+                icon: "delete",
+                color: "warning",
+                onClick: (g) => setConfirmDelete(g),
+                tooltip: "Excluir",
+              },
+            ]}
+            pagination={{
+              page,
+              rowsPerPage,
+              total,
+              onPageChange: setPage,
+              onRowsPerPageChange: (rows) => {
+                setRowsPerPage(rows);
+                setPage(1);
+              },
+            }}
+            toolbar={
+              <SearchField
+                value={q}
+                onChange={(v) => {
+                  setQ(v);
+                  setPage(1);
+                }}
+                placeholder="Buscar jogo por nome…"
+              />
+            }
+            sort={{ orderBy: sort.orderBy, order: sort.order, onChange: sort.set }}
+            loading={loading}
+            emptyMessage={
+              loading
+                ? "Carregando…"
+                : isFiltering
+                ? `Nada encontrado para "${q}"`
+                : "Nenhum jogo cadastrado"
+            }
+            emptyHint={
+              loading
+                ? undefined
+                : isFiltering
+                ? "Tente outro termo ou limpe a busca."
+                : undefined
+            }
+          />
+        </SectionCard>
+      )}
+
+      <ConfirmDialog
+        open={confirmDelete != null}
+        title="Excluir jogo?"
+        message={
+          <span>
+            Você está prestes a excluir <strong>{confirmDelete?.name}</strong>. Pode afetar
+            prêmios ou votos vinculados.
+          </span>
+        }
+        confirmLabel="Excluir"
+        destructive
+        onConfirm={onDeleteConfirmed}
+        onClose={() => setConfirmDelete(null)}
+      />
+    </PageLayout>
+  );
 };
+
+export default Games;

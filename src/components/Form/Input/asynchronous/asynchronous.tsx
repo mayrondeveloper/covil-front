@@ -1,104 +1,118 @@
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
-import CircularProgress from "@mui/material/CircularProgress";
-import { useState, useEffect, Fragment } from "react";
-import { Controller } from "react-hook-form";
-import { AutocompleteChangeReason } from "@mui/material";
+import { Fragment, useEffect } from "react";
+import {
+  Autocomplete,
+  AutocompleteProps,
+  CircularProgress,
+  TextField,
+  createFilterOptions,
+} from "@mui/material";
+import { Control, Controller, FieldValues, Path } from "react-hook-form";
+import { normalize } from "../../../../utils/text";
 
-interface Categories {
-  id: string;
+const accentInsensitiveFilter = createFilterOptions<any>({
+  stringify: (option) => normalize(option?.name ?? ""),
+});
+
+interface OptionLike {
+  id: string | number;
   name: string;
-  multiple: boolean;
-  image: [];
-  video: [];
-  link: [];
 }
 
-export default function Asynchronous({
-  resetField,
-  setData,
+interface AsynchronousProps<T extends FieldValues> {
+  control: Control<T>;
+  name: Path<T>;
+  id?: string;
+  label: string;
+  data: OptionLike[] | null | undefined;
+  setData?: (value: any) => void;
+  defaultValue?: any;
+  resetField?: any;
+  multiple?: boolean;
+  required?: boolean;
+  helperText?: string;
+  size?: "small" | "medium";
+  loading?: boolean;
+  getOptionDisabled?: (option: OptionLike) => boolean;
+}
+
+export default function Asynchronous<T extends FieldValues>({
   control,
+  name,
   id,
   label,
-  defaultValue,
-  name,
   data,
+  setData,
+  defaultValue,
   multiple = true,
-}: any) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState<any>([]);
-  const [options, setOptions] = useState<Categories[]>([]);
-  const loading = open && options.length === 0;
+  required = false,
+  helperText,
+  size = "small",
+  loading = false,
+  getOptionDisabled,
+}: AsynchronousProps<T>) {
+  const options = data ?? [];
 
   useEffect(() => {
-    if (!defaultValue) return;
-    setValue(defaultValue);
-    setData(defaultValue);
-  }, [resetField, defaultValue]);
-
-  useEffect(() => {
-    if (!data) return;
-    let active = true;
-
-    if (!loading) {
-      return undefined;
-    }
-
-    if (active) {
-      setOptions(data);
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [loading]);
-
-  useEffect(() => {
-    if (!open) {
-      setOptions([]);
-    }
-  }, [open]);
+    if (!setData) return;
+    const isEmpty =
+      defaultValue == null ||
+      (Array.isArray(defaultValue) && defaultValue.length === 0);
+    if (!isEmpty) setData(defaultValue);
+  }, [defaultValue, setData]);
 
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field }: any) => {
+      rules={{ required }}
+      defaultValue={defaultValue}
+      render={({ field, fieldState }) => {
+        const errMessage = fieldState.error?.type === "required" ? "Campo obrigatório" : undefined;
+
         return (
           <Autocomplete
             multiple={multiple}
-            id={id}
+            id={id ?? (name as string)}
             sx={{ width: "100%" }}
-            open={open}
-            onOpen={() => {
-              setOpen(true);
-            }}
-            onClose={() => {
-              setOpen(false);
-            }}
-            isOptionEqualToValue={(option: any, value) =>
-              option?.id === value.id
-            }
-            getOptionLabel={(option) => option.name || ""}
             options={options}
             loading={loading}
-            onChange={(a: any, d: any, reason: AutocompleteChangeReason) => {
-              setValue(d);
-              setData(d);
+            value={field.value ?? (multiple ? [] : null)}
+            isOptionEqualToValue={(o: any, v: any) => (o?.id ?? o) === (v?.id ?? v)}
+            getOptionLabel={(option: any) => option?.name ?? ""}
+            getOptionDisabled={getOptionDisabled}
+            filterOptions={(opts, state) =>
+              accentInsensitiveFilter(opts, { ...state, inputValue: normalize(state.inputValue) })
+            }
+            onChange={(_e, next) => {
+              field.onChange(next);
+              setData?.(next);
             }}
-            value={value}
+            noOptionsText="Sem resultados"
+            loadingText="Carregando…"
+            ListboxProps={{
+              style: { maxHeight: 320, overflowY: "auto" },
+            }}
+            slotProps={{
+              popper: {
+                modifiers: [
+                  { name: "flip", enabled: true },
+                  { name: "preventOverflow", enabled: true, options: { padding: 8 } },
+                ],
+              },
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
-                size={"small"}
+                size={size}
                 label={label}
+                required={required}
+                error={Boolean(fieldState.error)}
+                helperText={errMessage ?? helperText ?? " "}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
                     <Fragment>
-                      {loading ? (
-                        <CircularProgress color="inherit" size={20} />
-                      ) : null}
+                      {loading ? <CircularProgress color="inherit" size={18} /> : null}
                       {params.InputProps.endAdornment}
                     </Fragment>
                   ),
