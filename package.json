@@ -106,7 +106,7 @@
   },
   "engines": {
     "node": "20.x",
-    "yarn": "1.22.22"
+    "yarn": ">=1.22"
   },
   "browserslist": {
     "production": [
