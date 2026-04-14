@@ -212,7 +212,7 @@ export const HomePage = () => {
     <PageLayout>
       <PageHeader
         eyebrow="Painel"
-        title="Dragão de Ouro 2025"
+        title="Dashboard"
         subtitle="Centralize a gestão do catálogo de jogos e da premiação. Tudo o que você precisa para manter o Covil em dia, em um só lugar."
       />
 
