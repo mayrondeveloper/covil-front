@@ -98,7 +98,7 @@ export function LoginPage() {
               variant="overline"
               sx={{ color: "secondary.main", letterSpacing: 2 }}
             >
-              Covil dos Jogos
+              Boardgames
             </Typography>
             <Typography variant="h4" sx={{ mt: 0.5 }}>
               Entrar

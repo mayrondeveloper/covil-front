@@ -331,7 +331,7 @@ export const Announcement = () => {
 
         <Box sx={{ textAlign: "center", mt: 6, color: "text.disabled" }}>
           <Typography variant="caption">
-            Gerado em {new Date().toLocaleDateString("pt-BR")} · Covil dos Jogos
+            Gerado em {new Date().toLocaleDateString("pt-BR")} · Boardgames
           </Typography>
         </Box>
       </Box>

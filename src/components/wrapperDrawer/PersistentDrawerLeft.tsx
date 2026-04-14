@@ -137,7 +137,7 @@ const SidebarContent = () => {
               lineHeight: 1,
             }}
           >
-            Covil dos Jogos
+            Boardgames
           </Typography>
           <Typography variant="caption" sx={{ letterSpacing: "0.08em" }}>
             ADMIN
