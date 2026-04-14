@@ -1,194 +1,174 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import {
-  Avatar,
+  Alert,
+  Autocomplete,
   Box,
-  Card,
-  Chip,
-  CircularProgress,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
+  LinearProgress,
+  Skeleton,
   Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
+  alpha,
 } from "@mui/material";
+import { WinnerCard, topWithTies } from "../../../components/WinnerCard/WinnerCard";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import { useRanking, useAwards, useAwardCategoriesByAward } from "../../../hooks/queries";
-import { Button } from "@mui/material";
-import { Link } from "react-router-dom";
+import {
+  useAllRankings,
+  useAwards,
+  useScoringScheme,
+  useCategoriesProgress,
+} from "../../../hooks/queries";
+import { Link, useSearchParams } from "react-router-dom";
 import PageLayout from "../../../components/Layout/PageLayout";
 import PageHeader from "../../../components/Layout/PageHeader";
 import SectionCard from "../../../components/Layout/SectionCard";
 import { Id, RankingEntry } from "../../../services/types";
 
-const POSITION_STYLE: Record<number, { label: string; bg: string; color: string }> = {
-  1: { label: "1º", bg: "linear-gradient(135deg, #B45309 0%, #F59E0B 100%)", color: "#fff" },
-  2: { label: "2º", bg: "linear-gradient(135deg, #9CA3AF 0%, #D1D5DB 100%)", color: "#0F172A" },
-  3: { label: "3º", bg: "linear-gradient(135deg, #7C2D12 0%, #C2410C 100%)", color: "#fff" },
-};
+
+interface CategoryWinnersProps {
+  categoryName: string;
+  ranking: RankingEntry[];
+  expectedVoters: number;
+  progress?: { voters: number; votes: number };
+  maxVotes: number;
+}
 
 const CategoryWinners = ({
-  awardId,
-  categoryId,
   categoryName,
-}: {
-  awardId: Id;
-  categoryId: Id;
-  categoryName: string;
-}) => {
-  const { data, isLoading } = useRanking(awardId, categoryId);
-  const top = (data?.ranking ?? []).slice(0, 3);
+  ranking,
+  expectedVoters,
+  progress,
+  maxVotes,
+}: CategoryWinnersProps) => {
+  const podium = topWithTies(ranking, 3);
+  const voters = progress?.voters ?? 0;
+  const votes = progress?.votes ?? 0;
+  const complete = maxVotes > 0 && votes >= maxVotes;
+
+  const descParts: string[] = [];
+  if (expectedVoters > 0) {
+    descParts.push(
+      `${voters} de ${expectedVoters} ${expectedVoters === 1 ? "votante votou" : "votantes votaram"}`
+    );
+  }
+  if (complete) descParts.push("votação completa");
+  else if (maxVotes > 0) descParts.push(`${votes}/${maxVotes} votos`);
 
   return (
     <SectionCard
       title={categoryName}
-      description={
-        isLoading
-          ? "Carregando…"
-          : top.length === 0
-          ? "Nenhum voto registrado para esta categoria."
-          : `${top.length} ${top.length === 1 ? "indicado pontuado" : "indicados pontuados"}.`
-      }
+      description={descParts.length > 0 ? descParts.join(" · ") : undefined}
     >
-      {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress size={28} />
+      {expectedVoters > 0 && (
+        <Box sx={{ mb: 2, "@media print": { display: "none" } }}>
+          <LinearProgress
+            variant="determinate"
+            value={Math.min(100, maxVotes > 0 ? (votes / maxVotes) * 100 : 0)}
+            sx={{
+              height: 5,
+              borderRadius: 3,
+              bgcolor: (t) => alpha(t.palette.divider, 0.5),
+              "& .MuiLinearProgress-bar": {
+                bgcolor: complete ? "success.main" : "secondary.main",
+              },
+            }}
+          />
         </Box>
-      ) : top.length === 0 ? null : (
-        <Grid container spacing={2}>
-          {top.map((entry: RankingEntry) => {
-            const style = POSITION_STYLE[entry.position] ?? POSITION_STYLE[3];
-            const isWinner = entry.position === 1;
-            return (
-              <Grid item xs={12} md={4} key={entry.game.id}>
-                <Card
-                  sx={{
-                    p: 2.5,
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1.5,
-                    borderColor: isWinner ? "secondary.main" : undefined,
-                    boxShadow: isWinner ? "0 8px 24px rgba(180, 83, 9, 0.12)" : undefined,
-                  }}
-                >
-                  <Stack direction="row" alignItems="center" gap={1.5}>
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "grid",
-                        placeItems: "center",
-                        background: style.bg,
-                        color: style.color,
-                        fontWeight: 700,
-                        fontSize: 14,
-                      }}
-                    >
-                      {style.label}
-                    </Box>
-                    {isWinner && (
-                      <Chip
-                        size="small"
-                        icon={<EmojiEventsRoundedIcon sx={{ fontSize: 14 }} />}
-                        label="Vencedor"
-                        color="secondary"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    )}
-                    {entry.tied && (
-                      <Chip
-                        size="small"
-                        label="EMPATADO"
-                        color="warning"
-                        variant="outlined"
-                        sx={{ fontWeight: 700, letterSpacing: "0.05em" }}
-                      />
-                    )}
-                  </Stack>
-                  <Stack direction="row" gap={1.5} alignItems="flex-start">
-                    {entry.game.image ? (
-                      <Avatar
-                        src={entry.game.image}
-                        alt={entry.game.name}
-                        variant="rounded"
-                        sx={{ width: 56, height: 56 }}
-                      />
-                    ) : (
-                      <Avatar variant="rounded" sx={{ width: 56, height: 56, bgcolor: "background.default", color: "text.secondary" }}>
-                        {entry.game.name?.[0] ?? "?"}
-                      </Avatar>
-                    )}
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        sx={{
-                          fontFamily: "'Playfair Display', serif",
-                          fontWeight: 600,
-                          fontSize: "1.05rem",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        {entry.game.name}
-                      </Typography>
-                      <Typography variant="caption">
-                        {entry.total_points}{" "}
-                        {entry.total_points === 1 ? "ponto" : "pontos"}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Stack direction="row" gap={0.75} flexWrap="wrap">
-                    {entry.breakdown.firsts > 0 && (
-                      <Chip size="small" label={`${entry.breakdown.firsts}× 1º`} />
-                    )}
-                    {entry.breakdown.seconds > 0 && (
-                      <Chip
-                        size="small"
-                        label={`${entry.breakdown.seconds}× 2º`}
-                        variant="outlined"
-                      />
-                    )}
-                    {entry.breakdown.thirds > 0 && (
-                      <Chip
-                        size="small"
-                        label={`${entry.breakdown.thirds}× 3º`}
-                        variant="outlined"
-                      />
-                    )}
-                  </Stack>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
+      )}
+
+      {podium.length === 0 ? (
+        <Alert severity="info" variant="outlined">
+          Nenhum voto registrado para esta categoria.
+        </Alert>
+      ) : (
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          gap={2}
+          alignItems="stretch"
+        >
+          {podium.map((entry) => (
+            <Box
+              key={entry.game.id}
+              sx={{
+                flex: "1 1 0",
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <WinnerCard entry={entry} />
+            </Box>
+          ))}
+        </Stack>
       )}
     </SectionCard>
   );
 };
 
 export const WinnersOverview = () => {
+  const [sp, setSp] = useSearchParams();
+  const awardId = sp.get("award") ?? "";
+
   const { data: awards = [], isLoading: loadingAwards } = useAwards();
-  const [awardId, setAwardId] = useState<Id | "">("");
+  const { data: rankings = [], isLoading: loadingRankings } = useAllRankings(
+    awardId || undefined
+  );
+  const { data: scheme } = useScoringScheme(awardId || undefined);
+  const { data: categoriesProgress = [] } = useCategoriesProgress(
+    awardId || undefined
+  );
+
+  const award = (awards as any[]).find((a) => String(a.id) === awardId);
+  const expectedVoters: number = (award as any)?.participants?.length ?? 0;
+  const maxVotes = expectedVoters * (scheme?.places.length ?? 0);
+
+  const progressByCategory = useMemo(() => {
+    const m = new Map<string, { voters: number; votes: number }>();
+    (categoriesProgress as any[]).forEach((p) => {
+      m.set(String(p.id_category), {
+        voters: p.distinct_voters ?? 0,
+        votes: p.total_votes ?? 0,
+      });
+    });
+    return m;
+  }, [categoriesProgress]);
 
   useEffect(() => {
-    if (awardId || !awards.length) return;
+    if (awardId || awards.length === 0) return;
     const latest = [...awards].sort((a: any, b: any) => {
       const ya = Number(a.year) || 0;
       const yb = Number(b.year) || 0;
       if (yb !== ya) return yb - ya;
       return String(b.id).localeCompare(String(a.id));
     })[0];
-    if (latest?.id != null) setAwardId(latest.id);
-  }, [awards, awardId]);
+    if (latest?.id != null) {
+      const next = new URLSearchParams(sp);
+      next.set("award", String(latest.id));
+      setSp(next, { replace: true });
+    }
+  }, [awards, awardId, sp, setSp]);
 
-  const { data: categories = [], isLoading: loadingCategories } = useAwardCategoriesByAward(
-    awardId || undefined
-  );
+  const setAward = (value: { id: Id } | null) => {
+    const next = new URLSearchParams(sp);
+    if (value) next.set("award", String(value.id));
+    else next.delete("award");
+    setSp(next, { replace: true });
+  };
 
   return (
     <PageLayout>
+      <Box
+        sx={{
+          "@media print": {
+            "& nav, & [role='navigation'], & header, & .MuiDrawer-root, & .MuiAppBar-root": {
+              display: "none !important",
+            },
+          },
+        }}
+      />
       <PageHeader
         eyebrow="Resultados"
         title="Vencedores por categoria"
@@ -200,43 +180,127 @@ export const WinnersOverview = () => {
         ]}
       />
 
-      <SectionCard title="Edição do prêmio">
-        <Stack direction={{ xs: "column", sm: "row" }} gap={2} alignItems={{ sm: "center" }}>
-          <FormControl sx={{ minWidth: 320 }} size="small">
-            <InputLabel id="award-select">Prêmio</InputLabel>
-            <Select
-              labelId="award-select"
-              label="Prêmio"
-              value={awardId}
-              onChange={(e) => setAwardId(e.target.value as Id)}
-              disabled={loadingAwards}
-            >
-              {awards.map((a: any) => (
-                <MenuItem key={a.id} value={a.id}>
-                  {a.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {awardId && (
-            <Button
+      <Box sx={{ "@media print": { display: "none" } }}>
+      <SectionCard>
+        <Typography
+          variant="overline"
+          sx={{
+            display: "block",
+            color: "text.secondary",
+            letterSpacing: 1,
+            mb: 1,
+          }}
+        >
+          Prêmio
+        </Typography>
+        {awards.length > 8 ? (
+          <Autocomplete
+            sx={{ maxWidth: 480 }}
+            size="small"
+            options={awards as any[]}
+            loading={loadingAwards}
+            value={award ?? null}
+            onChange={(_e, v) => setAward(v as any)}
+            getOptionLabel={(o: any) => o?.name ?? ""}
+            isOptionEqualToValue={(a: any, b: any) => a?.id === b?.id}
+            renderInput={(params) => (
+              <TextField {...params} placeholder="Buscar prêmio…" required />
+            )}
+          />
+        ) : (
+          <ToggleButtonGroup
+            value={awardId || null}
+            exclusive
+            onChange={(_e, v) => {
+              if (!v) return;
+              const a = (awards as any[]).find((x) => String(x.id) === v);
+              setAward(a ?? null);
+            }}
+            sx={{
+              flexWrap: "wrap",
+              gap: 1,
+              "& .MuiToggleButtonGroup-grouped": {
+                border: (t) => `1px solid ${t.palette.divider} !important`,
+                borderRadius: "999px !important",
+                mx: "0 !important",
+                px: 2,
+                textTransform: "none",
+                fontWeight: 600,
+              },
+            }}
+          >
+            {loadingAwards && awards.length === 0
+              ? [0, 1, 2].map((i) => (
+                  <Skeleton
+                    key={i}
+                    variant="rounded"
+                    width={120}
+                    height={36}
+                    sx={{ borderRadius: 999 }}
+                  />
+                ))
+              : (awards as any[])
+                  .slice()
+                  .sort((a, b) => (Number(b.year) || 0) - (Number(a.year) || 0))
+                  .map((a) => (
+                    <ToggleButton key={a.id} value={String(a.id)}>
+                      {a.name}
+                      {a.year && (
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          sx={{ ml: 0.75, color: "text.secondary" }}
+                        >
+                          {a.year}
+                        </Typography>
+                      )}
+                    </ToggleButton>
+                  ))}
+          </ToggleButtonGroup>
+        )}
+
+        {awardId && scheme && scheme.places.length > 0 && (
+          <Typography
+            variant="caption"
+            sx={{ display: "block", mt: 1.5, color: "text.secondary" }}
+          >
+            Pontuação:{" "}
+            {scheme.places
+              .map((p) => `${p.label} ${p.points} ${p.points === 1 ? "pt" : "pts"}`)
+              .join(" · ")}
+          </Typography>
+        )}
+
+        {awardId && (
+          <Box sx={{ mt: 1 }}>
+            <Typography
               component={Link}
               to={`/awards/${awardId}/announcement`}
-              variant="contained"
-              color="secondary"
-              startIcon={<EmojiEventsRoundedIcon />}
-              endIcon={<OpenInNewRoundedIcon />}
+              variant="caption"
+              sx={{
+                color: "secondary.main",
+                fontWeight: 600,
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.5,
+                "&:hover": { textDecoration: "underline" },
+              }}
             >
-              Página de anúncio
-            </Button>
-          )}
-        </Stack>
+              Abrir página de anúncio
+              <OpenInNewRoundedIcon sx={{ fontSize: 14 }} />
+            </Typography>
+          </Box>
+        )}
       </SectionCard>
+      </Box>
 
       {!awardId && (
         <SectionCard>
           <Box sx={{ textAlign: "center", py: 6 }}>
-            <EmojiEventsRoundedIcon sx={{ fontSize: 56, color: "secondary.main", opacity: 0.5 }} />
+            <EmojiEventsRoundedIcon
+              sx={{ fontSize: 56, color: "secondary.main", opacity: 0.5 }}
+            />
             <Typography variant="h5" sx={{ mt: 2 }}>
               Escolha uma edição
             </Typography>
@@ -247,29 +311,35 @@ export const WinnersOverview = () => {
         </SectionCard>
       )}
 
-      {awardId && loadingCategories && (
+      {awardId && loadingRankings && (
         <SectionCard>
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        </SectionCard>
-      )}
-
-      {awardId && !loadingCategories && categories.length === 0 && (
-        <SectionCard>
-          <Typography variant="body2" sx={{ textAlign: "center", py: 4 }}>
-            Esta edição ainda não tem categorias cadastradas.
-          </Typography>
+          <Stack gap={2}>
+            {[0, 1].map((i) => (
+              <Skeleton key={i} variant="rounded" height={200} />
+            ))}
+          </Stack>
         </SectionCard>
       )}
 
       {awardId &&
-        categories.map((c: any) => (
+        !loadingRankings &&
+        rankings.length === 0 && (
+          <SectionCard>
+            <Typography variant="body2" sx={{ textAlign: "center", py: 4 }}>
+              Esta edição ainda não tem categorias cadastradas.
+            </Typography>
+          </SectionCard>
+        )}
+
+      {awardId &&
+        rankings.map((r: any) => (
           <CategoryWinners
-            key={c.id}
-            awardId={awardId}
-            categoryId={c.id}
-            categoryName={c.name}
+            key={r.category.id}
+            categoryName={r.category.name}
+            ranking={r.ranking as RankingEntry[]}
+            expectedVoters={expectedVoters}
+            progress={progressByCategory.get(String(r.category.id))}
+            maxVotes={maxVotes}
           />
         ))}
     </PageLayout>

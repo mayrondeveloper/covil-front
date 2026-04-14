@@ -31,7 +31,6 @@ import MilitaryTechRoundedIcon from "@mui/icons-material/MilitaryTechRounded";
 import {
   create,
   fetchPage as fetchVotesPage,
-  findAllByAwardAndCategory,
 } from "../../../services/votes/votes-service";
 import { fetch as fetchAllAwards } from "../../../services/awards-service/awards-service";
 import EnchancedTableVotes from "../../../components/Table/enchanced-table/enchanced-table-votes";
@@ -40,8 +39,14 @@ import PageHeader from "../../../components/Layout/PageHeader";
 import SectionCard from "../../../components/Layout/SectionCard";
 import { useNotification } from "../../../hooks/use-notification";
 import SearchFieldComp from "../../../components/Form/Field/SearchField";
-import { useScoringScheme, useVoterSlots } from "../../../hooks/queries";
-import { useQuery } from "@tanstack/react-query";
+import {
+  useScoringScheme,
+  useVoterSlots,
+  useCategoryVotes,
+  useVoterProgress,
+  useCategoryProgress,
+} from "../../../hooks/queries";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTableUrlState } from "../../../hooks/use-table-url-state";
 import { matchesSearch } from "../../../utils/text";
 
@@ -49,8 +54,8 @@ type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const STEP_LABELS: { label: string; icon: JSX.Element }[] = [
   { label: "Prêmio", icon: <EmojiEventsRoundedIcon fontSize="small" /> },
-  { label: "Categoria", icon: <WorkspacesRoundedIcon fontSize="small" /> },
   { label: "Votante", icon: <PersonRoundedIcon fontSize="small" /> },
+  { label: "Categoria", icon: <WorkspacesRoundedIcon fontSize="small" /> },
   { label: "Jogo", icon: <SportsEsportsRoundedIcon fontSize="small" /> },
   { label: "Colocação", icon: <MilitaryTechRoundedIcon fontSize="small" /> },
   { label: "Confirmar", icon: <CheckRoundedIcon fontSize="small" /> },
@@ -151,6 +156,7 @@ export const NewVotes = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { success } = useNotification();
+  const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>(0);
@@ -186,27 +192,27 @@ export const NewVotes = () => {
     voterSlots.map((v: any) => v.id_game ?? v.game?.id)
   );
 
-  // Para o step 2 (votante): conta quantos votos cada participante já tem na (award, category)
-  // e marca como "completo" quem usou todas as colocações do scheme.
-  const { data: categoryVotes = [] } = useQuery(
-    ["category-votes", dadosGerais.award?.id, dadosGerais.category?.id],
-    () =>
-      findAllByAwardAndCategory(
-        dadosGerais.award.id,
-        dadosGerais.category.id
-      ).then((r) => r.data ?? []),
-    {
-      enabled: Boolean(dadosGerais.award?.id && dadosGerais.category?.id),
-      staleTime: 15_000,
-    }
+  // Agregações vindas do backend (groupBy) — evita trafegar todos os votos e
+  // garante contagem completa mesmo quando o prêmio tem milhares de votos.
+  const { data: voterProgress = [] } = useVoterProgress(dadosGerais.award?.id);
+  const { data: categoryProgress = [] } = useCategoryProgress(
+    dadosGerais.award?.id,
+    dadosGerais.participant?.id
   );
+  const { data: categoryVotes = [] } = useCategoryVotes(
+    dadosGerais.award?.id,
+    dadosGerais.category?.id
+  );
+
   const totalPlaces = places.length || 3;
-  const voterUsedCount = new Map<string, number>();
-  (categoryVotes as any[]).forEach((v) => {
-    const id = v.id_vote ?? v.participant?.id;
-    if (!id) return;
-    voterUsedCount.set(id, (voterUsedCount.get(id) ?? 0) + 1);
-  });
+  const categoriesInAward = categories.length;
+  const maxVotesPerVoter = categoriesInAward * totalPlaces;
+  const voterTotalCount = new Map<string, number>(
+    (voterProgress as any[]).map((r) => [r.id_vote as string, r.count as number])
+  );
+  const categoryUsedCount = new Map<string, number>(
+    (categoryProgress as any[]).map((r) => [r.id_category as string, r.count as number])
+  );
 
   const [data, setData] = useState<any[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -280,7 +286,7 @@ export const NewVotes = () => {
     const target = (step - 1) as Step;
     setStep(target);
     // limpa o passo de destino e tudo que vem depois (caso usuário tenha selecionado e voltado)
-    const order = ["award", "category", "participant", "game", "place"];
+    const order = ["award", "participant", "category", "game", "place"];
     setDadosGerais((g: any) => {
       const copy = { ...g };
       for (let i = target; i < order.length; i++) {
@@ -293,8 +299,8 @@ export const NewVotes = () => {
       const next = { ...p };
       const fieldByStep: Record<number, keyof typeof p> = {
         0: "id_award",
-        1: "id_category",
-        2: "id_vote",
+        1: "id_vote",
+        2: "id_category",
         3: "id_game",
         4: "place",
       };
@@ -320,18 +326,27 @@ export const NewVotes = () => {
         fetchVotes();
         setResetField((v) => !v);
         setLastSaved({ game: savedGame, placeLabel: savedPlaceLabel });
+        // Invalida caches de votos do fluxo para que os próximos passos
+        // (outro voto, mesmo votante / mesmo prêmio) enxerguem o voto recém-criado
+        // e apliquem os disables corretamente.
+        queryClient.invalidateQueries(["voter-progress"]);
+        queryClient.invalidateQueries(["category-progress"]);
+        queryClient.invalidateQueries(["categories-progress"]);
+        queryClient.invalidateQueries(["voter-slots"]);
+        queryClient.invalidateQueries(["category-votes"]);
         setStep(6);
       })
       .catch(() => undefined) // mensagem (incl. 409 DUPLICATE_VOTE) já vem do interceptor
       .finally(() => setSaving(false));
   };
 
-  const resetForNextVote = (keepLevel: "category" | "voter") => {
+  const resetForNextVote = (keepLevel: "voter" | "award") => {
     setDadosGerais((g: any) => {
       const copy = { ...g };
+      delete copy.category;
       delete copy.game;
       delete copy.place;
-      if (keepLevel === "category") {
+      if (keepLevel === "award") {
         delete copy.participant;
       }
       return copy;
@@ -340,24 +355,26 @@ export const NewVotes = () => {
       ...p,
       place: "",
       id_game: "",
-      ...(keepLevel === "category" ? { id_vote: "" } : {}),
+      id_category: "",
+      ...(keepLevel === "award" ? { id_vote: "" } : {}),
     }));
     setLastSaved(null);
-    setStep(keepLevel === "category" ? 2 : 3);
+    // keepLevel "voter" → pula para Categoria (step 2); "award" → volta para Votante (step 1)
+    setStep(keepLevel === "voter" ? 2 : 1);
   };
 
-  // Dados do passo atual (nova ordem: 0=Prêmio, 1=Categoria, 2=Votante, 3=Jogo)
+  // Dados do passo atual. Ordem: 0=Prêmio, 1=Votante, 2=Categoria, 3=Jogo
   const currentList: OptionItem[] = useMemo(() => {
     if (step === 0)
       return awards.map((a: any) => ({ id: a.id, name: a.name, subtitle: a.year ? `Edição ${a.year}` : undefined }));
     if (step === 1)
-      return categories.map((c: any) => ({ id: c.categories.id, name: c.categories.name }));
-    if (step === 2)
       return participantes.map((p: any) => ({
         id: p.participant.id,
         name: p.participant.name,
         image: p.participant.image,
       }));
+    if (step === 2)
+      return categories.map((c: any) => ({ id: c.categories.id, name: c.categories.name }));
     if (step === 3)
       return jogos.map((j: any) => ({ id: j.game.id, name: j.game.name, image: j.game.image }));
     return [];
@@ -380,8 +397,8 @@ export const NewVotes = () => {
 
   const selectedId = useMemo(() => {
     if (step === 0) return dadosGerais.award?.id;
-    if (step === 1) return dadosGerais.category?.id;
-    if (step === 2) return dadosGerais.participant?.id;
+    if (step === 1) return dadosGerais.participant?.id;
+    if (step === 2) return dadosGerais.category?.id;
     if (step === 3) return dadosGerais.game?.id;
     return null;
   }, [step, dadosGerais]);
@@ -396,14 +413,14 @@ export const NewVotes = () => {
       setDataForSend((p) => ({ ...p, id_award: award.id }));
       setStep(1);
     } else if (step === 1) {
-      const cat: any = categories.find((c: any) => c.categories.id === opt.id)?.categories;
-      setDadosGerais((g: any) => ({ ...g, category: cat }));
-      setDataForSend((p) => ({ ...p, id_category: cat.id }));
-      setStep(2);
-    } else if (step === 2) {
       const part: any = participantes.find((p: any) => p.participant.id === opt.id)?.participant;
       setDadosGerais((g: any) => ({ ...g, participant: part }));
       setDataForSend((p) => ({ ...p, id_vote: part.id }));
+      setStep(2);
+    } else if (step === 2) {
+      const cat: any = categories.find((c: any) => c.categories.id === opt.id)?.categories;
+      setDadosGerais((g: any) => ({ ...g, category: cat }));
+      setDataForSend((p) => ({ ...p, id_category: cat.id }));
       setStep(3);
     } else if (step === 3) {
       const g: any = jogos.find((j: any) => j.game.id === opt.id)?.game;
@@ -618,8 +635,8 @@ export const NewVotes = () => {
         <Divider />
 
         <DialogContent sx={{ p: 3 }}>
-          {/* Progresso da categoria — só no step 2 (votante) */}
-          {step === 2 && (
+          {/* Progresso da categoria — mostrado no step 3 (jogo), quando a categoria já foi escolhida */}
+          {step === 3 && (
             <Alert severity="info" icon={false} sx={{ mb: 2 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                 <Typography variant="body2">
@@ -687,14 +704,24 @@ export const NewVotes = () => {
                       let disabled = false;
                       let disabledReason: string | undefined;
                       let disabledChip = "indisponível";
-                      if (step === 2) {
-                        const used = voterUsedCount.get(String(item.id)) ?? 0;
+                      if (step === 1) {
+                        // Votante: desabilita se já votou em todas as categorias × colocações do prêmio.
+                        const used = voterTotalCount.get(String(item.id)) ?? 0;
+                        if (maxVotesPerVoter > 0 && used >= maxVotesPerVoter) {
+                          disabled = true;
+                          disabledReason = `Este votante já registrou todos os ${maxVotesPerVoter} votos do prêmio (${categoriesInAward} categorias × ${totalPlaces} colocações).`;
+                          disabledChip = "votos completos";
+                        }
+                      } else if (step === 2) {
+                        // Categoria: desabilita se o votante já usou todas as colocações nesta categoria.
+                        const used = categoryUsedCount.get(String(item.id)) ?? 0;
                         if (used >= totalPlaces) {
                           disabled = true;
                           disabledReason = `Este votante já registrou todos os ${totalPlaces} votos nesta categoria.`;
-                          disabledChip = "votos completos";
+                          disabledChip = "categoria completa";
                         }
                       } else if (step === 3) {
+                        // Jogo: desabilita se já votado nesta categoria por este votante.
                         if (usedGameIds.has(item.id)) {
                           disabled = true;
                           disabledReason = "Este votante já votou neste jogo nesta categoria.";
@@ -869,22 +896,22 @@ export const NewVotes = () => {
                   size="large"
                   variant="contained"
                   color="secondary"
-                  startIcon={<PersonRoundedIcon />}
-                  onClick={() => resetForNextVote("category")}
+                  startIcon={<WorkspacesRoundedIcon />}
+                  onClick={() => resetForNextVote("voter")}
                   sx={{ py: 2 }}
                 >
-                  Outro voto, mesma categoria
+                  Outro voto, mesmo votante
                 </Button>
                 <Button
                   fullWidth
                   size="large"
                   variant="contained"
                   color="secondary"
-                  startIcon={<SportsEsportsRoundedIcon />}
-                  onClick={() => resetForNextVote("voter")}
+                  startIcon={<PersonRoundedIcon />}
+                  onClick={() => resetForNextVote("award")}
                   sx={{ py: 2 }}
                 >
-                  Outro voto, mesmo votante
+                  Outro voto, mesmo prêmio
                 </Button>
                 <Button
                   fullWidth

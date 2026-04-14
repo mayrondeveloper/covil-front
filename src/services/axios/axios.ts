@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { toast } from "react-toastify";
 
 const baseURL = process.env.REACT_APP_BASE_PATH;
@@ -13,7 +13,88 @@ if (!baseURL) {
 export const axiosInstance = axios.create({
   baseURL,
   timeout: 30000,
+  withCredentials: true,
 });
+
+// ---------- Access token (em memória) ----------
+let _accessToken: string | null = null;
+export const setAccessToken = (t: string | null) => {
+  _accessToken = t;
+};
+export const getAccessToken = () => _accessToken;
+
+// Callback invocado quando o refresh falha (auth perdida) — o AuthProvider registra.
+let _onAuthLost: (() => void) | null = null;
+export const setOnAuthLost = (fn: (() => void) | null) => {
+  _onAuthLost = fn;
+};
+
+// Injeta Bearer em toda requisição autenticada
+axiosInstance.interceptors.request.use((config) => {
+  if (_accessToken) {
+    config.headers = config.headers ?? ({} as any);
+    (config.headers as any).Authorization = `Bearer ${_accessToken}`;
+  }
+  return config;
+});
+
+// ---------- Refresh on 401 ----------
+let refreshPromise: Promise<string> | null = null;
+
+const isAuthPath = (url: string | undefined) => {
+  if (!url) return false;
+  return (
+    url.includes("/auth/login") ||
+    url.includes("/auth/refresh") ||
+    url.includes("/auth/logout")
+  );
+};
+
+async function doRefresh(): Promise<string> {
+  if (!refreshPromise) {
+    // Usa axios puro para evitar recursão pelo interceptor de request/response.
+    refreshPromise = axios
+      .post(`${baseURL}/auth/refresh`, {}, { withCredentials: true })
+      .then((r) => {
+        const token = r.data?.access_token as string;
+        _accessToken = token;
+        return token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+axiosInstance.interceptors.response.use(
+  (r) => r,
+  async (error: AxiosError) => {
+    const original = error.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+    const status = error.response?.status;
+    if (
+      status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthPath(original.url)
+    ) {
+      original._retry = true;
+      try {
+        const newToken = await doRefresh();
+        original.headers = original.headers ?? ({} as any);
+        (original.headers as any).Authorization = `Bearer ${newToken}`;
+        return axiosInstance(original);
+      } catch (e) {
+        _accessToken = null;
+        _onAuthLost?.();
+        return Promise.reject(error);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 interface ServerErrorBody {
   message?: string;
@@ -65,6 +146,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ServerErrorBody>) => {
     const status = error.response?.status;
+    const url = error.config?.url;
+    // Endpoints de auth: silenciosos aqui. A página de login exibe o próprio erro,
+    // e o /auth/refresh pode falhar em bootstrap sem sessão (normal).
+    if (isAuthPath(url)) return Promise.reject(error);
+
     const message = formatErrorMessage(status, error.response?.data);
 
     if (process.env.NODE_ENV !== "test") {

@@ -29,7 +29,9 @@ import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import HowToVoteRoundedIcon from "@mui/icons-material/HowToVoteRounded";
 import LeaderboardRoundedIcon from "@mui/icons-material/LeaderboardRounded";
 import WorkspacesRoundedIcon from "@mui/icons-material/WorkspacesRounded";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const DRAWER_WIDTH = 264;
 const APP_BAR_HEIGHT = 64;
@@ -211,6 +213,12 @@ export default function PersistentDrawerLeft({ children }: { children: React.Rea
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
@@ -245,6 +253,16 @@ export default function PersistentDrawerLeft({ children }: { children: React.Rea
               }}
             >
               <EmojiEventsRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={user?.email ? `Sair (${user.email})` : "Sair"}>
+            <IconButton
+              onClick={handleLogout}
+              size="small"
+              sx={{ ml: 1 }}
+              aria-label="Sair"
+            >
+              <LogoutRoundedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Toolbar>

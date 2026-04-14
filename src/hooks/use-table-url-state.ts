@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 
 export interface TableUrlStateOptions {
@@ -43,26 +43,34 @@ export const useTableUrlState = (opts: TableUrlStateOptions = {}): TableUrlState
   const order: "asc" | "desc" | undefined =
     orderRaw === "asc" || orderRaw === "desc" ? orderRaw : defaultOrder;
 
+  // `useSearchParams().setSearchParams` captura o `searchParams` no closure da render atual.
+  // Se duas chamadas síncronas (ex.: setQ(v); setPage(1)) invocarem setParams, ambas leem a
+  // mesma base e a segunda sobrescreve a primeira. Mantemos um ref com o último estado
+  // aplicado para compor atualizações corretamente.
+  const pendingRef = useRef<URLSearchParams | null>(null);
+  // Limpa o ref após cada commit: novas chamadas síncronas em um único handler
+  // encadeiam usando `pendingRef`; após a URL ser aplicada, voltamos a ler de `params`.
+  useEffect(() => {
+    pendingRef.current = null;
+  });
+
   const update = useCallback(
     (patch: Record<string, string | number | undefined | null>) => {
-      setParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          Object.entries(patch).forEach(([key, value]) => {
-            const fullKey = k(key);
-            if (value === undefined || value === null || value === "") {
-              next.delete(fullKey);
-            } else {
-              next.set(fullKey, String(value));
-            }
-          });
-          return next;
-        },
-        { replace: true }
-      );
+      const base = pendingRef.current ?? params;
+      const next = new URLSearchParams(base);
+      Object.entries(patch).forEach(([key, value]) => {
+        const fullKey = k(key);
+        if (value === undefined || value === null || value === "") {
+          next.delete(fullKey);
+        } else {
+          next.set(fullKey, String(value));
+        }
+      });
+      pendingRef.current = next;
+      setParams(next, { replace: true });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setParams, prefix]
+    [setParams, prefix, params]
   );
 
   return {

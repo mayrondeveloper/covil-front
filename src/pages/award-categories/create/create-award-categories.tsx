@@ -18,14 +18,19 @@ import { ControlledTextField } from "../../../components/Form/Field/ControlledTe
 import { FormRow, FormCol } from "../../../components/Form/Field/FormRow";
 import { FormActions } from "../../../components/Form/Field/FormActions";
 import { useNotification } from "../../../hooks/use-notification";
+import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
+import { useAwards } from "../../../hooks/queries";
+
+type AwardOption = { id: string; name: string } | null;
 
 interface CategoryForm {
   name: string;
   description: string;
+  award: AwardOption;
   [k: string]: unknown;
 }
 
-const defaultValues: CategoryForm = { name: "", description: "" };
+const defaultValues: CategoryForm = { name: "", description: "", award: null };
 
 export const CreateAwardCategories = () => {
   const [data, setData] = useState<any[]>([]);
@@ -46,7 +51,8 @@ export const CreateAwardCategories = () => {
   const setQ = url.setQ;
   const sort = { orderBy: url.orderBy, order: url.order, set: url.setSort };
 
-  const { handleSubmit, control, reset } = useForm<CategoryForm>({ defaultValues });
+  const { handleSubmit, control, reset, resetField } = useForm<CategoryForm>({ defaultValues });
+  const { data: awards = [] } = useAwards();
 
   const fetchAll = useCallback(() => {
     setLoading(true);
@@ -70,9 +76,18 @@ export const CreateAwardCategories = () => {
 
   const sendCategory = (values: CategoryForm) => {
     setSaving(true);
-    create(values)
+    const payload = {
+      name: values.name,
+      description: values.description,
+      award_id: values.award?.id,
+    };
+    create(payload)
       .then(() => {
-        success("Categoria cadastrada com sucesso!");
+        success(
+          values.award
+            ? `Categoria cadastrada e vinculada a "${values.award.name}".`
+            : "Categoria cadastrada com sucesso!"
+        );
         reset(defaultValues);
         if (page !== 1) setPage(1);
         else fetchAll();
@@ -132,6 +147,18 @@ export const CreateAwardCategories = () => {
                 label="Descrição"
                 rules={{ required: true }}
                 placeholder="Texto curto explicando a categoria"
+              />
+            </FormCol>
+            <FormCol md={6}>
+              <Asynchronous
+                control={control}
+                data={awards}
+                resetField={resetField}
+                multiple={false}
+                name="award"
+                label="Vincular ao prêmio (opcional)"
+                helperText="Se selecionado, a categoria já fica associada à edição escolhida."
+                defaultValue={null}
               />
             </FormCol>
           </FormRow>

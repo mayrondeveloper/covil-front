@@ -62,6 +62,81 @@ export const useScoringScheme = (id?: Id) =>
  * Devolve os votos que um votante já tem em (prêmio, categoria),
  * para a UI desabilitar `place` ou `game` já usados antes do submit.
  */
+/**
+ * Agregado do backend: quantos votos cada votante já tem no prêmio inteiro.
+ * Usa groupBy no DB (bem mais barato que trazer todos os votos).
+ */
+export const useVoterProgress = (awardId?: Id) => {
+  const enabled =
+    awardId !== undefined && awardId !== null && awardId !== "";
+  return useQuery(
+    ["voter-progress", awardId],
+    () => awards.fetchVoterProgress(awardId!).then((r) => r.data),
+    { enabled, staleTime: 15_000, refetchOnWindowFocus: true }
+  );
+};
+
+/**
+ * Agregado por categoria de um prêmio: nº de votantes distintos e total de votos.
+ * Usado pra pintar o progresso em cada chip de categoria.
+ */
+export const useCategoriesProgress = (awardId?: Id) => {
+  const enabled =
+    awardId !== undefined && awardId !== null && awardId !== "";
+  return useQuery(
+    ["categories-progress", awardId],
+    () => awards.fetchCategoriesProgress(awardId!).then((r) => r.data),
+    { enabled, staleTime: 15_000, refetchOnWindowFocus: true }
+  );
+};
+
+/**
+ * Agregado do backend: quantos votos o votante já tem em cada categoria do prêmio.
+ */
+export const useCategoryProgress = (awardId?: Id, voterId?: Id) => {
+  const enabled =
+    awardId !== undefined && awardId !== null && awardId !== "" &&
+    voterId !== undefined && voterId !== null && voterId !== "";
+  return useQuery(
+    ["category-progress", awardId, voterId],
+    () => awards.fetchCategoryProgress(awardId!, voterId!).then((r) => r.data),
+    { enabled, staleTime: 15_000 }
+  );
+};
+
+/**
+ * Total de votos registrados em (prêmio, categoria). Usado pra mostrar
+ * progresso agregado da categoria.
+ */
+export const useCategoryVotes = (awardId?: Id, categoryId?: Id) => {
+  const enabled =
+    awardId !== undefined && awardId !== null && awardId !== "" &&
+    categoryId !== undefined && categoryId !== null && categoryId !== "";
+  return useQuery(
+    ["category-votes", awardId, categoryId],
+    () =>
+      votes
+        .findAllByAwardAndCategory(awardId!, categoryId!)
+        .then((r) => r.data ?? []),
+    { enabled, staleTime: 15_000 }
+  );
+};
+
+/**
+ * Devolve todos os votos que o votante já tem em (prêmio), para a UI
+ * saber em quais categorias ele ainda tem colocações disponíveis.
+ */
+export const useVoterVotesInAward = (awardId?: Id, voterId?: Id) => {
+  const enabled =
+    awardId !== undefined && awardId !== null && awardId !== "" &&
+    voterId !== undefined && voterId !== null && voterId !== "";
+  return useQuery(
+    ["voter-votes-in-award", awardId, voterId],
+    () => votes.fetchByAwardAndVoter(awardId!, voterId!).then((r) => r.data),
+    { enabled, staleTime: 15_000 }
+  );
+};
+
 export const useVoterSlots = (awardId?: Id, categoryId?: Id, voterId?: Id) => {
   const enabled =
     awardId !== undefined && awardId !== null && awardId !== "" &&
@@ -93,8 +168,23 @@ export const useRanking = (awardId?: Id, categoryId?: Id) =>
         categoryId !== null &&
         categoryId !== "",
       staleTime: 30_000,
+      refetchOnWindowFocus: true,
     }
   );
+
+/**
+ * Ranking de todas as categorias do prêmio em uma única chamada. Evita
+ * disparar N requests quando a tela precisa de uma visão geral.
+ */
+export const useAllRankings = (awardId?: Id) => {
+  const enabled =
+    awardId !== undefined && awardId !== null && awardId !== "";
+  return useQuery(
+    ["awards", awardId, "rankings"],
+    () => awards.fetchAllRankings(awardId!).then((r) => r.data.rankings),
+    { enabled, staleTime: 30_000, refetchOnWindowFocus: true }
+  );
+};
 
 export const useCategories = () =>
   useQuery(qk.categories, () => categories.fetch().then((r) => r.data));

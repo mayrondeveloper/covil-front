@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { createBrowserRouter, Link } from "react-router-dom";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
+import { RequireAuth } from "./components/RequireAuth";
 
 const lazyPage = (importer, named) =>
   lazy(() =>
@@ -73,6 +74,10 @@ const NewVotes = lazyPage(
   () => import("./pages/votes/create/new-votes"),
   "NewVotes"
 );
+const LoginPage = lazyPage(
+  () => import("./pages/login/login-page"),
+  "LoginPage"
+);
 
 const PageFallback = () => (
   <Box
@@ -110,29 +115,34 @@ const withSuspense = (element) => (
   <Suspense fallback={<PageFallback />}>{element}</Suspense>
 );
 
+const guarded = (element) => (
+  <RequireAuth>{withSuspense(element)}</RequireAuth>
+);
+
 export const router = createBrowserRouter([
-  { path: "/", element: withSuspense(<HomePage />) },
-  { path: "/game", element: withSuspense(<Games />) },
-  { path: "/game/create-game", element: withSuspense(<CreateGame />) },
-  { path: "/game/edit-game/:id", element: withSuspense(<CreateGame />) },
-  { path: "/game/create-category", element: withSuspense(<CreateCategories />) },
-  { path: "/game/create-publisher", element: withSuspense(<CreatePublishers />) },
-  { path: "/game/create-artist", element: withSuspense(<CreateArtists />) },
-  { path: "/game/create-mechanism", element: withSuspense(<CreateMechanisms />) },
-  { path: "/game/create-designer", element: withSuspense(<CreateDesigners />) },
-  { path: "/game/add-by-link", element: withSuspense(<AddByLink />) },
-  { path: "/awards", element: withSuspense(<DragaoDeOuro />) },
-  { path: "/awards/create-awards", element: withSuspense(<CreateAwards />) },
-  { path: "/awards/edit-awards/:id", element: withSuspense(<CreateAwards />) },
-  { path: "/awards/create-category", element: withSuspense(<CreateAwardCategories />) },
-  { path: "/awards/create-new-votes", element: withSuspense(<NewVotes />) },
-  { path: "/awards/create-participants", element: withSuspense(<CreateAwardParticipants />) },
-  { path: "/awards/winners", element: withSuspense(<WinnersOverview />) },
-  { path: "/awards/:id/announcement", element: withSuspense(<Announcement />) },
-  { path: "/awards/view-award-and-category", element: withSuspense(<ViewAwardAndCategory />) },
+  { path: "/login", element: withSuspense(<LoginPage />) },
+  { path: "/", element: guarded(<HomePage />) },
+  { path: "/game", element: guarded(<Games />) },
+  { path: "/game/create-game", element: guarded(<CreateGame />) },
+  { path: "/game/edit-game/:id", element: guarded(<CreateGame />) },
+  { path: "/game/create-category", element: guarded(<CreateCategories />) },
+  { path: "/game/create-publisher", element: guarded(<CreatePublishers />) },
+  { path: "/game/create-artist", element: guarded(<CreateArtists />) },
+  { path: "/game/create-mechanism", element: guarded(<CreateMechanisms />) },
+  { path: "/game/create-designer", element: guarded(<CreateDesigners />) },
+  { path: "/game/add-by-link", element: guarded(<AddByLink />) },
+  { path: "/awards", element: guarded(<DragaoDeOuro />) },
+  { path: "/awards/create-awards", element: guarded(<CreateAwards />) },
+  { path: "/awards/edit-awards/:id", element: guarded(<CreateAwards />) },
+  { path: "/awards/create-category", element: guarded(<CreateAwardCategories />) },
+  { path: "/awards/create-new-votes", element: guarded(<NewVotes />) },
+  { path: "/awards/create-participants", element: guarded(<CreateAwardParticipants />) },
+  { path: "/awards/winners", element: guarded(<WinnersOverview />) },
+  { path: "/awards/:id/announcement", element: guarded(<Announcement />) },
+  { path: "/awards/view-award-and-category", element: guarded(<ViewAwardAndCategory />) },
   {
     path: "/awards/view-award-and-category-places",
-    element: withSuspense(<ViewAwardAndCategoryPlaces />),
+    element: guarded(<ViewAwardAndCategoryPlaces />),
   },
   { path: "*", element: <NotFound /> },
 ]);

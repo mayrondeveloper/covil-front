@@ -27,6 +27,29 @@ export const update = (id: Id, data: Partial<Award>) =>
 export const fetchScoringScheme = (id: Id) =>
   axiosInstance.get<ScoringScheme>(`/awards/${id}/scoring-scheme`);
 
+export const fetchVoterProgress = (id: Id) =>
+  axiosInstance.get<Array<{ id_vote: Id; count: number }>>(
+    `/awards/${id}/voter-progress`,
+  );
+
+export const fetchCategoryProgress = (id: Id, voterId: Id) =>
+  axiosInstance.get<Array<{ id_category: Id; count: number }>>(
+    `/awards/${id}/voter-progress/${voterId}`,
+  );
+
+export const fetchCategoriesProgress = (id: Id) =>
+  axiosInstance.get<
+    Array<{ id_category: Id; distinct_voters: number; total_votes: number }>
+  >(`/awards/${id}/categories-progress`);
+
+export const fetchAllRankings = (id: Id) =>
+  axiosInstance.get<{
+    rankings: Array<{
+      category: { id: Id; name: string };
+      ranking: import("../types").RankingEntry[];
+    }>;
+  }>(`/awards/${id}/rankings`);
+
 export interface AddVotersResult {
   added: number;
   requested: number;

@@ -2,10 +2,25 @@ import { axiosInstance } from "../axios/axios";
 import { Vote, Id, Paginated, PageParams } from "../types";
 import { MAX_LIMIT, unwrap } from "../pagination";
 
-export const fetchPage = (params?: PageParams) =>
+type VotesFilter = PageParams & {
+  id_award?: Id;
+  id_vote?: Id;
+  id_category?: Id;
+  id_game?: Id;
+};
+
+export const fetchPage = (params?: VotesFilter) =>
   axiosInstance.get<Paginated<Vote>>(`/votes`, { params });
 
 export const fetch = () => fetchPage({ limit: MAX_LIMIT }).then(unwrap);
+
+export const fetchByAwardAndVoter = (awardId: Id, voterId: Id) =>
+  fetchPage({ id_award: awardId, id_vote: voterId, limit: MAX_LIMIT }).then(
+    unwrap
+  );
+
+export const fetchByAward = (awardId: Id) =>
+  fetchPage({ id_award: awardId, limit: MAX_LIMIT }).then(unwrap);
 
 export const findAllByAwardAndCategoryPage = (
   id_award: Id,

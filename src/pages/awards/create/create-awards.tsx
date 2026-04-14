@@ -96,7 +96,7 @@ export const CreateAwards = () => {
     op.then(() => {
       success(params.id ? "Prêmio atualizado!" : "Prêmio cadastrado!");
       if (params.id) {
-        fetchExisting();
+        navigate("/awards");
       } else {
         reset(initialDefaults);
         setGamesSel([]);

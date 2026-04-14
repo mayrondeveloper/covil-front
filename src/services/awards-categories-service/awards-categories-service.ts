@@ -14,8 +14,9 @@ export const fetchByAward = (award: Id) =>
     })
     .then(unwrap);
 
-export const create = (data: Partial<AwardCategory>) =>
-  axiosInstance.post<AwardCategory>(`/award-categories`, data);
+export const create = (
+  data: Partial<AwardCategory> & { award_id?: Id },
+) => axiosInstance.post<AwardCategory>(`/award-categories`, data);
 
 export const remove = (id: Id) =>
   axiosInstance.delete<void>(`/award-categories/${id}`);

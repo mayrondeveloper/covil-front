@@ -1,7 +1,7 @@
 import { InputAdornment, TextField, IconButton } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface SearchFieldProps {
   value: string;
@@ -19,17 +19,25 @@ export const SearchField = ({
   width = 320,
 }: SearchFieldProps) => {
   const [local, setLocal] = useState(value);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
+  // Sincroniza quando o pai altera `value` externamente (ex.: reset / voltar do browser).
   useEffect(() => {
-    setLocal(value);
+    setLocal((prev) => (prev === value ? prev : value));
   }, [value]);
 
+  // Dispara onChange debounced quando o usuário digita.
   useEffect(() => {
     if (local === value) return;
-    const t = setTimeout(() => onChange(local), debounceMs);
+    const t = setTimeout(() => onChangeRef.current(local), debounceMs);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [local]);
+  }, [local, value, debounceMs]);
+
+  const clear = () => {
+    setLocal("");
+    onChangeRef.current("");
+  };
 
   return (
     <TextField
@@ -46,7 +54,7 @@ export const SearchField = ({
         ),
         endAdornment: local ? (
           <InputAdornment position="end">
-            <IconButton size="small" onClick={() => setLocal("")} aria-label="Limpar busca">
+            <IconButton size="small" onClick={clear} aria-label="Limpar busca">
               <CloseRoundedIcon fontSize="small" />
             </IconButton>
           </InputAdornment>
