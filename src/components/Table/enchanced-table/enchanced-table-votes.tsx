@@ -41,6 +41,7 @@ const PLACE_COLOR: Record<string, { bg: string; color: string }> = {
 
 export default function EnchancedTableVotes({
   data,
+  setData,
   onChanged,
   pagination,
   toolbar,
@@ -110,6 +111,9 @@ export default function EnchancedTableVotes({
     if (!confirmDelete) return;
     const row = confirmDelete;
     setConfirmDelete(null);
+    // Remoção otimista: tira da UI já. Se o usuário desfizer, restaura.
+    const previous = data ?? [];
+    setData?.(previous.filter((v) => v.id !== row.id));
     undoable.run({
       message: `Voto de ${row.participant?.name ?? "votante"} em ${row.game?.name ?? "jogo"} removido.`,
       onCommit: async () => {
@@ -117,13 +121,13 @@ export default function EnchancedTableVotes({
           await remove(row.id);
           onChanged?.();
         } catch {
+          // Restaura UI e avisa.
+          setData?.(previous);
           error("Não foi possível remover o voto.");
-          onChanged?.();
         }
       },
-      onUndo: () => onChanged?.(),
+      onUndo: () => setData?.(previous),
     });
-    // Ainda chamamos onChanged depois de algum tempo pra refletir UI; aqui já é refeito no commit.
   };
 
   return (

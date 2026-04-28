@@ -519,6 +519,7 @@ export const NewVotes = () => {
       >
         <EnchancedTableVotes
           data={data}
+          setData={setData}
           onChanged={fetchVotes}
           pagination={{
             page: votesPage,
