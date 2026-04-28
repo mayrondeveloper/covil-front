@@ -17,6 +17,8 @@ import {
   Tooltip,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import SportsEsportsRoundedIcon from "@mui/icons-material/SportsEsportsRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
@@ -28,13 +30,18 @@ import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import HowToVoteRoundedIcon from "@mui/icons-material/HowToVoteRounded";
 import LeaderboardRoundedIcon from "@mui/icons-material/LeaderboardRounded";
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
 import WorkspacesRoundedIcon from "@mui/icons-material/WorkspacesRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import { useSettings } from "../../hooks/queries";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 const DRAWER_WIDTH = 264;
+const DRAWER_WIDTH_COLLAPSED = 72;
 const APP_BAR_HEIGHT = 64;
+const COLLAPSE_STORAGE_KEY = "covil.drawer.collapsed";
 
 interface NavItem {
   name: string;
@@ -92,16 +99,38 @@ const navGroups: NavGroup[] = [
         icon: <EmojiEventsRoundedIcon fontSize="small" />,
       },
       {
+        name: "Pódio",
+        route: "/awards/podium",
+        icon: <WorkspacePremiumRoundedIcon fontSize="small" />,
+      },
+      {
         name: "Por colocação",
         route: "/awards/view-award-and-category-places",
         icon: <LeaderboardRoundedIcon fontSize="small" />,
       },
     ],
   },
+  {
+    label: "Admin",
+    items: [
+      {
+        name: "Configurações",
+        route: "/admin/settings",
+        icon: <SettingsRoundedIcon fontSize="small" />,
+      },
+    ],
+  },
 ];
 
-const SidebarContent = () => {
+interface SidebarContentProps {
+  collapsed?: boolean;
+  onItemClick?: () => void;
+}
+
+const SidebarContent = ({ collapsed = false, onItemClick }: SidebarContentProps) => {
   const location = useLocation();
+  const { data: settings } = useSettings();
+  const customIcon = settings?.drawer_icon_url || "";
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box
@@ -110,7 +139,8 @@ const SidebarContent = () => {
           display: "flex",
           alignItems: "center",
           gap: 1.5,
-          px: 3,
+          px: collapsed ? 0 : 3,
+          justifyContent: collapsed ? "center" : "flex-start",
           borderBottom: (t) => `1px solid ${t.palette.divider}`,
         }}
       >
@@ -122,43 +152,73 @@ const SidebarContent = () => {
             display: "grid",
             placeItems: "center",
             background: (t) =>
-              `linear-gradient(135deg, ${t.palette.secondary.main} 0%, #F59E0B 100%)`,
+              customIcon
+                ? "transparent"
+                : `linear-gradient(135deg, ${t.palette.secondary.main} 0%, #F59E0B 100%)`,
             color: "#fff",
+            overflow: "hidden",
+            flexShrink: 0,
           }}
         >
-          <EmojiEventsRoundedIcon fontSize="small" />
+          {customIcon ? (
+            <Box
+              component="img"
+              src={customIcon}
+              alt=""
+              sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          ) : (
+            <EmojiEventsRoundedIcon fontSize="small" />
+          )}
         </Box>
-        <Box>
-          <Typography
-            sx={{
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 700,
-              fontSize: "1.1rem",
-              lineHeight: 1,
-            }}
-          >
-            Boardgames
-          </Typography>
-          <Typography variant="caption" sx={{ letterSpacing: "0.08em" }}>
-            ADMIN
-          </Typography>
-        </Box>
-      </Box>
-
-      <Box sx={{ flex: 1, overflowY: "auto", py: 2 }}>
-        {navGroups.map((group) => (
-          <Box key={group.label} sx={{ mb: 2 }}>
+        {!collapsed && (
+          <Box sx={{ minWidth: 0 }}>
             <Typography
-              variant="overline"
               sx={{
-                px: 3,
-                display: "block",
-                color: "text.disabled",
-                fontSize: "0.6875rem",
+                fontFamily: "'Playfair Display', serif",
+                fontWeight: 700,
+                fontSize: "1.1rem",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
               }}
             >
-              {group.label}
+              Boardgames
             </Typography>
+            <Typography variant="caption" sx={{ letterSpacing: "0.08em" }}>
+              ADMIN
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden", py: 2 }}>
+        {navGroups.map((group, groupIdx) => (
+          <Box key={group.label} sx={{ mb: 2 }}>
+            {collapsed ? (
+              groupIdx > 0 && (
+                <Box
+                  aria-hidden
+                  sx={{
+                    mx: 1.5,
+                    mb: 0.5,
+                    height: "1px",
+                    bgcolor: "divider",
+                  }}
+                />
+              )
+            ) : (
+              <Typography
+                variant="overline"
+                sx={{
+                  px: 3,
+                  display: "block",
+                  color: "text.disabled",
+                  fontSize: "0.6875rem",
+                }}
+              >
+                {group.label}
+              </Typography>
+            )}
             <List dense disablePadding sx={{ mt: 0.5 }}>
               {group.items.map((item) => {
                 const path = location.pathname;
@@ -167,18 +227,30 @@ const SidebarContent = () => {
                   (item.matchPrefixes ?? []).some(
                     (p) => path === p || path.startsWith(p + "/")
                   );
-                return (
-                  <ListItem key={item.route} disablePadding>
-                    <ListItemButton
-                      component={NavLink}
-                      to={item.route}
-                      selected={active}
+                const button = (
+                  <ListItemButton
+                    component={NavLink}
+                    to={item.route}
+                    selected={active}
+                    onClick={onItemClick}
+                    sx={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      mx: collapsed ? 1 : 0,
+                      borderRadius: collapsed ? 1.5 : 0,
+                      justifyContent: collapsed ? "center" : "flex-start",
+                      px: collapsed ? 1 : undefined,
+                    }}
+                  >
+                    <ListItemIcon
                       sx={{
-                        textDecoration: "none",
-                        color: "inherit",
+                        minWidth: collapsed ? 0 : undefined,
+                        justifyContent: "center",
                       }}
                     >
-                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      {item.icon}
+                    </ListItemIcon>
+                    {!collapsed && (
                       <ListItemText
                         primary={item.name}
                         primaryTypographyProps={{
@@ -186,7 +258,18 @@ const SidebarContent = () => {
                           fontWeight: active ? 600 : 500,
                         }}
                       />
-                    </ListItemButton>
+                    )}
+                  </ListItemButton>
+                );
+                return (
+                  <ListItem key={item.route} disablePadding>
+                    {collapsed ? (
+                      <Tooltip title={item.name} placement="right" arrow>
+                        <Box sx={{ width: "100%" }}>{button}</Box>
+                      </Tooltip>
+                    ) : (
+                      button
+                    )}
                   </ListItem>
                 );
               })}
@@ -195,16 +278,18 @@ const SidebarContent = () => {
         ))}
       </Box>
 
-      <Box
-        sx={{
-          p: 2.5,
-          borderTop: (t) => `1px solid ${t.palette.divider}`,
-        }}
-      >
-        <Typography variant="caption" sx={{ display: "block" }}>
-          v0.1.0 · Dragão de Ouro
-        </Typography>
-      </Box>
+      {!collapsed && (
+        <Box
+          sx={{
+            p: 2.5,
+            borderTop: (t) => `1px solid ${t.palette.divider}`,
+          }}
+        >
+          <Typography variant="caption" sx={{ display: "block" }}>
+            v0.1.0 · Dragão de Ouro
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
@@ -213,6 +298,13 @@ export default function PersistentDrawerLeft({ children }: { children: React.Rea
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const handleLogout = async () => {
@@ -220,26 +312,67 @@ export default function PersistentDrawerLeft({ children }: { children: React.Rea
     navigate("/login", { replace: true });
   };
 
+  const toggleDrawer = () => {
+    if (isDesktop) {
+      setCollapsed((prev) => {
+        const next = !prev;
+        try {
+          localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
+        } catch {
+          /* ignore quota / privacy-mode errors */
+        }
+        return next;
+      });
+    } else {
+      setMobileOpen((prev) => !prev);
+    }
+  };
+
+  const desktopWidth = collapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH;
+  const widthTransition = theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  });
+  const marginTransition = theme.transitions.create(["margin", "width"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  });
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
       <AppBar
         position="fixed"
         sx={{
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          ml: { md: `${DRAWER_WIDTH}px` },
+          width: { md: `calc(100% - ${desktopWidth}px)` },
+          ml: { md: `${desktopWidth}px` },
           height: APP_BAR_HEIGHT,
           justifyContent: "center",
+          transition: marginTransition,
         }}
       >
         <Toolbar sx={{ minHeight: `${APP_BAR_HEIGHT}px !important`, px: { xs: 2, md: 4 } }}>
-          <IconButton
-            aria-label="Abrir menu"
-            edge="start"
-            onClick={() => setMobileOpen(true)}
-            sx={{ mr: 2, display: { md: "none" } }}
+          <Tooltip
+            title={isDesktop ? (collapsed ? "Expandir menu" : "Recolher menu") : "Abrir menu"}
           >
-            <MenuIcon />
-          </IconButton>
+            <IconButton
+              aria-label={
+                isDesktop ? (collapsed ? "Expandir menu" : "Recolher menu") : "Abrir menu"
+              }
+              edge="start"
+              onClick={toggleDrawer}
+              sx={{ mr: 2 }}
+            >
+              {isDesktop ? (
+                collapsed ? (
+                  <ChevronRightRoundedIcon />
+                ) : (
+                  <ChevronLeftRoundedIcon />
+                )
+              ) : (
+                <MenuIcon />
+              )}
+            </IconButton>
+          </Tooltip>
           <Box sx={{ flex: 1 }} />
           <Tooltip title="Ir ao site público">
             <IconButton
@@ -270,7 +403,11 @@ export default function PersistentDrawerLeft({ children }: { children: React.Rea
 
       <Box
         component="nav"
-        sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
+        sx={{
+          width: { md: desktopWidth },
+          flexShrink: { md: 0 },
+          transition: widthTransition,
+        }}
       >
         <Drawer
           variant="temporary"
@@ -282,17 +419,22 @@ export default function PersistentDrawerLeft({ children }: { children: React.Rea
             "& .MuiDrawer-paper": { width: DRAWER_WIDTH },
           }}
         >
-          <SidebarContent />
+          <SidebarContent onItemClick={() => setMobileOpen(false)} />
         </Drawer>
         <Drawer
           variant="permanent"
           open
           sx={{
             display: { xs: "none", md: "block" },
-            "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
+            "& .MuiDrawer-paper": {
+              width: desktopWidth,
+              boxSizing: "border-box",
+              overflowX: "hidden",
+              transition: widthTransition,
+            },
           }}
         >
-          <SidebarContent />
+          <SidebarContent collapsed={collapsed} />
         </Drawer>
       </Box>
 

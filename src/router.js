@@ -62,6 +62,10 @@ const WinnersOverview = lazyPage(
   () => import("./pages/awards/view/winners-overview"),
   "WinnersOverview"
 );
+const PodiumOverview = lazyPage(
+  () => import("./pages/awards/view/podium-overview"),
+  "PodiumOverview"
+);
 const Announcement = lazyPage(
   () => import("./pages/awards/view/announcement"),
   "Announcement"
@@ -81,6 +85,10 @@ const NewVotes = lazyPage(
 const BulkVotes = lazyPage(
   () => import("./pages/votes/create/bulk-votes"),
   "BulkVotes"
+);
+const AdminSettings = lazyPage(
+  () => import("./pages/admin/admin-settings"),
+  "AdminSettings"
 );
 const LoginPage = lazyPage(
   () => import("./pages/login/login-page"),
@@ -148,11 +156,13 @@ export const router = createBrowserRouter([
   { path: "/awards/create-bulk-votes", element: guarded(<BulkVotes />) },
   { path: "/awards/create-participants", element: guarded(<CreateAwardParticipants />) },
   { path: "/awards/winners", element: guarded(<WinnersOverview />) },
+  { path: "/awards/podium", element: guarded(<PodiumOverview />) },
   { path: "/awards/:id/announcement", element: guarded(<Announcement />) },
   { path: "/awards/view-award-and-category", element: guarded(<ViewAwardAndCategory />) },
   {
     path: "/awards/view-award-and-category-places",
     element: guarded(<ViewAwardAndCategoryPlaces />),
   },
+  { path: "/admin/settings", element: guarded(<AdminSettings />) },
   { path: "*", element: <NotFound /> },
 ]);

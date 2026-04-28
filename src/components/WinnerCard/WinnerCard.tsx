@@ -2,7 +2,7 @@ import { Avatar, Box, Card, Chip, Stack, Typography } from "@mui/material";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import { RankingEntry } from "../../services/types";
 
-const POSITION_STYLE: Record<number, { label: string; bg: string; color: string }> = {
+export const POSITION_STYLE: Record<number, { label: string; bg: string; color: string }> = {
   1: { label: "1º", bg: "linear-gradient(135deg, #B45309 0%, #F59E0B 100%)", color: "#fff" },
   2: { label: "2º", bg: "linear-gradient(135deg, #9CA3AF 0%, #D1D5DB 100%)", color: "#0F172A" },
   3: { label: "3º", bg: "linear-gradient(135deg, #7C2D12 0%, #C2410C 100%)", color: "#fff" },
