@@ -1,14 +1,27 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Avatar, Link as MuiLink, Stack, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Link as MuiLink,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
 import LinkRoundedIcon from "@mui/icons-material/LinkRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import PlaylistAddRoundedIcon from "@mui/icons-material/PlaylistAddRounded";
 import {
+  bulkCreate,
   create,
   fetchPage,
   remove,
+  update,
 } from "../../../services/participants-service/participants-service";
 import {
   addVoters,
@@ -31,6 +44,23 @@ import ConfirmDialog from "../../../components/ConfirmDialog";
 import { bgColorForName, textColorForName } from "../../../utils/avatar-color";
 
 const URL_REGEX = /^https?:\/\/.+/i;
+
+const parseBulkLines = (raw: string): { name: string; description: string }[] =>
+  raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const idx = line.indexOf("|");
+      if (idx === -1) return { name: line, description: "" };
+      return {
+        name: line.slice(0, idx).trim(),
+        description: line.slice(idx + 1).trim(),
+      };
+    })
+    .filter((item) => item.name.length > 0);
+
+type AwardOption = { id: string; name: string };
 
 interface ParticipantForm {
   name: string;
@@ -58,6 +88,8 @@ export const CreateAwardParticipants = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [currentAwardIds, setCurrentAwardIds] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
 
   const [awards, setAwards] = useState<any[]>([]);
@@ -78,6 +110,23 @@ export const CreateAwardParticipants = () => {
   const undoable = useUndoable();
 
   const { handleSubmit, control, reset } = useForm<ParticipantForm>({ defaultValues });
+
+  const [bulkText, setBulkText] = useState("");
+  const [bulkAwards, setBulkAwards] = useState<AwardOption[]>([]);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const parsedBulk = useMemo(() => parseBulkLines(bulkText), [bulkText]);
+
+  const linkedAwards = useMemo(() => {
+    if (!editingId || currentAwardIds.length === 0) return [];
+    const set = new Set(currentAwardIds);
+    return (awards as any[]).filter((a: any) => set.has(a.id));
+  }, [awards, currentAwardIds, editingId]);
+
+  const addableAwards = useMemo(() => {
+    if (!editingId) return awards;
+    const set = new Set(currentAwardIds);
+    return (awards as any[]).filter((a: any) => !set.has(a.id));
+  }, [awards, currentAwardIds, editingId]);
 
   const fetchParticipants = useCallback(() => {
     setLoading(true);
@@ -103,17 +152,79 @@ export const CreateAwardParticipants = () => {
     fetchAllAwards().then((r: any) => setAwards(r.data));
   }, []);
 
+  const cancelEdit = () => {
+    setEditingId(null);
+    reset(defaultValues);
+    setSelectedAwards([]);
+    setCurrentAwardIds([]);
+  };
+
+  const onEdit = (row: any) => {
+    setEditingId(row.id);
+    reset({
+      name: row.name ?? "",
+      description: row.description ?? "",
+      image: row.image ?? "",
+      instagram: row.instagram ?? "",
+      site: row.site ?? "",
+      url: row.url ?? "",
+      awards: [],
+    });
+    setSelectedAwards([]);
+    setCurrentAwardIds(
+      Array.isArray(row?.awards)
+        ? row.awards
+            .map((a: any) => a?.id_award)
+            .filter((id: any): id is string => typeof id === "string")
+        : []
+    );
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const sendParticipant = async (values: ParticipantForm) => {
     setSaving(true);
     try {
-      const created = await create({
+      const payload = {
         name: values.name,
         description: values.description,
         image: values.image,
         instagram: values.instagram,
         site: values.site,
         url: values.url,
-      } as any);
+      };
+
+      if (editingId) {
+        await update(editingId, payload as any);
+
+        const linkTargets = selectedAwards ?? [];
+        if (linkTargets.length > 0) {
+          const results = await Promise.allSettled(
+            linkTargets.map((a: any) => addVoters(a.id, [editingId]))
+          );
+          const failed = results.filter((r) => r.status === "rejected").length;
+          if (failed === 0) {
+            success(
+              `Participante atualizado e vinculado a ${linkTargets.length} ${
+                linkTargets.length === 1 ? "prêmio" : "prêmios"
+              }.`
+            );
+          } else {
+            info(
+              `Participante atualizado, mas ${failed} de ${linkTargets.length} vínculos falharam. Tente vincular manualmente na edição do prêmio.`
+            );
+          }
+        } else {
+          success("Participante atualizado.");
+        }
+
+        cancelEdit();
+        fetchParticipants();
+        return;
+      }
+
+      const created = await create(payload as any);
       const newId = (created.data as any)?.id;
 
       const linkTargets = selectedAwards ?? [];
@@ -142,16 +253,61 @@ export const CreateAwardParticipants = () => {
       if (page !== 1) setPage(1);
       else fetchParticipants();
     } catch {
-      error("Não foi possível cadastrar o participante.");
+      error(
+        editingId
+          ? "Não foi possível atualizar o participante."
+          : "Não foi possível cadastrar o participante."
+      );
     } finally {
       setSaving(false);
     }
+  };
+
+  const submitBulk = () => {
+    if (parsedBulk.length === 0 || bulkSaving) return;
+    setBulkSaving(true);
+    bulkCreate({
+      participants: parsedBulk,
+      award_ids: bulkAwards.map((a) => a.id),
+    })
+      .then((r) => {
+        const created = r.data.created.length;
+        const skipped = r.data.skipped.length;
+        const linkSuffix =
+          bulkAwards.length > 0
+            ? ` e vinculado(s) a ${bulkAwards.length} ${
+                bulkAwards.length === 1 ? "prêmio" : "prêmios"
+              }`
+            : "";
+        if (created > 0 && skipped === 0) {
+          success(`${created} participante(s) cadastrado(s)${linkSuffix}.`);
+        } else if (created > 0 && skipped > 0) {
+          success(
+            `Criados ${created} · ${skipped} já existia(m)${linkSuffix}.`
+          );
+        } else if (skipped > 0) {
+          error(
+            `Nada cadastrado: ${skipped} participante(s) já existia(m) no sistema com esse(s) nome(s).`
+          );
+        } else {
+          error("Nada para cadastrar. Verifique o conteúdo digitado.");
+        }
+        setBulkText("");
+        setBulkAwards([]);
+        if (page !== 1) setPage(1);
+        else fetchParticipants();
+      })
+      .catch(() => {
+        // erro já é exibido pelo interceptor global do axios
+      })
+      .finally(() => setBulkSaving(false));
   };
 
   const onDeleteConfirmed = () => {
     if (!confirmDelete) return;
     const row = confirmDelete;
     setConfirmDelete(null);
+    if (editingId === row.id) cancelEdit();
     const previous = data;
     setData((prev) => prev.filter((p) => p.id !== row.id));
     undoable.run({
@@ -180,8 +336,12 @@ export const CreateAwardParticipants = () => {
       />
 
       <SectionCard
-        title="Novo participante"
-        description="Preencha pelo menos o nome. Vínculos com prêmios são opcionais."
+        title={editingId ? "Editar participante" : "Novo participante"}
+        description={
+          editingId
+            ? "Altere os dados do participante e clique em salvar."
+            : "Preencha pelo menos o nome. Vínculos com prêmios são opcionais."
+        }
       >
         <form onSubmit={handleSubmit(sendParticipant)} noValidate>
           <FormRow>
@@ -259,32 +419,129 @@ export const CreateAwardParticipants = () => {
               <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
                 <EmojiEventsRoundedIcon fontSize="small" sx={{ color: "secondary.main" }} />
                 <Typography variant="overline" color="text.disabled">
-                  Vincular a prêmios (opcional)
+                  {editingId ? "Vínculos a prêmios" : "Vincular a prêmios (opcional)"}
                 </Typography>
               </Stack>
+              {editingId && (
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.75 }}>
+                    {linkedAwards.length > 0
+                      ? `Já vinculado a ${linkedAwards.length} ${
+                          linkedAwards.length === 1 ? "prêmio" : "prêmios"
+                        }:`
+                      : "Ainda não está vinculado a nenhum prêmio."}
+                  </Typography>
+                  {linkedAwards.length > 0 && (
+                    <Stack direction="row" gap={0.75} flexWrap="wrap">
+                      {linkedAwards.map((a: any) => (
+                        <Chip
+                          key={a.id}
+                          icon={<EmojiEventsRoundedIcon />}
+                          label={a.year ? `${a.name} (${a.year})` : a.name}
+                          size="small"
+                          color="secondary"
+                          variant="outlined"
+                        />
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
+              )}
               <Asynchronous
                 multiple
                 control={control}
-                data={awards}
+                data={addableAwards}
                 setData={setSelectedAwards}
                 name="awards"
-                label="Edições do prêmio"
-                helperText="Após salvar, o participante será adicionado à lista de votantes destas edições."
+                label={editingId ? "Adicionar a outros prêmios" : "Edições do prêmio"}
+                helperText={
+                  editingId
+                    ? addableAwards.length > 0
+                      ? "Selecione novos prêmios para adicionar. Vínculos existentes não são removidos por aqui."
+                      : "Já está vinculado a todos os prêmios disponíveis."
+                    : "Após salvar, o participante será adicionado à lista de votantes destas edições."
+                }
               />
             </FormCol>
           </FormRow>
 
           <FormActions
             submitLabel={
-              selectedAwards.length > 0
+              editingId
+                ? selectedAwards.length > 0
+                  ? `Salvar e vincular a ${selectedAwards.length} ${
+                      selectedAwards.length === 1 ? "prêmio" : "prêmios"
+                    }`
+                  : "Salvar alterações"
+                : selectedAwards.length > 0
                 ? `Cadastrar e vincular a ${selectedAwards.length} ${
                     selectedAwards.length === 1 ? "prêmio" : "prêmios"
                   }`
                 : "Cadastrar participante"
             }
             saving={saving}
+            onCancel={editingId ? cancelEdit : undefined}
+            cancelLabel="Cancelar edição"
           />
         </form>
+      </SectionCard>
+
+      <SectionCard
+        title="Cadastro em massa"
+        description="Cole vários participantes de uma vez — um por linha. Use o formato “Nome | Descrição” se quiser incluir descrição (a descrição é opcional)."
+      >
+        <FormRow>
+          <FormCol md={12}>
+            <TextField
+              multiline
+              minRows={6}
+              fullWidth
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              placeholder={
+                "Tábula Quadrada | Canal sobre estratégia\n" +
+                "Ludopedia\n" +
+                "Boardgame Brasil | Comunidade brasileira de boardgames"
+              }
+              helperText={
+                parsedBulk.length > 0
+                  ? `${parsedBulk.length} participante(s) detectado(s).`
+                  : "Cole ou digite os participantes acima."
+              }
+            />
+          </FormCol>
+          <FormCol md={12}>
+            <Autocomplete
+              multiple
+              options={awards as AwardOption[]}
+              value={bulkAwards}
+              onChange={(_, v) => setBulkAwards(v as AwardOption[])}
+              getOptionLabel={(o) => o.name}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Vincular a prêmios (opcional)"
+                  helperText="Todos os participantes do lote (novos e pré-existentes) serão adicionados como votantes desses prêmios."
+                />
+              )}
+            />
+          </FormCol>
+        </FormRow>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+          <Button
+            variant="contained"
+            onClick={submitBulk}
+            disabled={parsedBulk.length === 0 || bulkSaving}
+            startIcon={<PlaylistAddRoundedIcon />}
+          >
+            {bulkSaving
+              ? "Cadastrando…"
+              : parsedBulk.length > 0
+              ? `Cadastrar ${parsedBulk.length} participante(s)`
+              : "Cadastrar em massa"}
+          </Button>
+        </Box>
       </SectionCard>
 
       <SectionCard
@@ -349,6 +606,7 @@ export const CreateAwardParticipants = () => {
             },
           ]}
           actions={[
+            { icon: "edit", color: "primary", onClick: (r) => onEdit(r), tooltip: "Editar" },
             { icon: "delete", color: "warning", onClick: (r) => setConfirmDelete(r), tooltip: "Excluir" },
           ]}
           pagination={{

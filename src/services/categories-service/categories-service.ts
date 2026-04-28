@@ -13,6 +13,14 @@ export const fetchOne = (id: Id) =>
 export const create = (data: Partial<NamedEntity>) =>
   axiosInstance.post<NamedEntity>(`/categories`, data);
 
+export interface BulkCreateResult {
+  created: NamedEntity[];
+  skipped: string[];
+}
+
+export const bulkCreate = (data: { names: string[] }) =>
+  axiosInstance.post<BulkCreateResult>(`/categories/bulk`, data);
+
 export const update = (id: Id, data: Partial<NamedEntity>) =>
   axiosInstance.put<NamedEntity>(`/categories/${id}`, data);
 

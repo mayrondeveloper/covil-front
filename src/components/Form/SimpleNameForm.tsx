@@ -29,6 +29,7 @@ interface SimpleNameFormProps {
   service: SimpleNameService;
   subtitle?: string;
   parentCrumb?: { label: string; to: string };
+  bulkSlot?: (api: { refresh: () => void }) => React.ReactNode;
 }
 
 interface FormValues {
@@ -41,6 +42,7 @@ export const SimpleNameForm = ({
   service,
   subtitle,
   parentCrumb,
+  bulkSlot,
 }: SimpleNameFormProps) => {
   const { success, error } = useNotification();
   const undoable = useUndoable();
@@ -185,6 +187,8 @@ export const SimpleNameForm = ({
           />
         </form>
       </SectionCard>
+
+      {bulkSlot && bulkSlot({ refresh: fetchAll })}
 
       <SectionCard
         title={`${entityName}s cadastrados(as)`}

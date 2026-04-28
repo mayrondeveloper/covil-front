@@ -1,10 +1,19 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { Typography } from "@mui/material";
 import {
+  Autocomplete,
+  Box,
+  Button,
+  TextField,
+  Typography,
+} from "@mui/material";
+import PlaylistAddRoundedIcon from "@mui/icons-material/PlaylistAddRounded";
+import {
+  bulkCreate,
   create,
   fetchPage,
   remove,
+  update,
 } from "../../../services/awards-categories-service/awards-categories-service";
 import PageLayout from "../../../components/Layout/PageLayout";
 import { GenericTable } from "../../../components/Table/GenericTable";
@@ -20,6 +29,21 @@ import { FormActions } from "../../../components/Form/Field/FormActions";
 import { useNotification } from "../../../hooks/use-notification";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
 import { useAwards } from "../../../hooks/queries";
+
+const parseBulkLines = (raw: string): { name: string; description: string }[] =>
+  raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const idx = line.indexOf("|");
+      if (idx === -1) return { name: line, description: "" };
+      return {
+        name: line.slice(0, idx).trim(),
+        description: line.slice(idx + 1).trim(),
+      };
+    })
+    .filter((item) => item.name.length > 0);
 
 type AwardOption = { id: string; name: string } | null;
 
@@ -37,6 +61,7 @@ export const CreateAwardCategories = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<any>(null);
   const { success, error } = useNotification();
   const undoable = useUndoable();
@@ -53,6 +78,11 @@ export const CreateAwardCategories = () => {
 
   const { handleSubmit, control, reset, resetField } = useForm<CategoryForm>({ defaultValues });
   const { data: awards = [] } = useAwards();
+
+  const [bulkText, setBulkText] = useState("");
+  const [bulkAward, setBulkAward] = useState<AwardOption>(null);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const parsedBulk = useMemo(() => parseBulkLines(bulkText), [bulkText]);
 
   const fetchAll = useCallback(() => {
     setLoading(true);
@@ -74,8 +104,41 @@ export const CreateAwardCategories = () => {
     fetchAll();
   }, [fetchAll]);
 
+  const cancelEdit = () => {
+    setEditingId(null);
+    reset(defaultValues);
+  };
+
+  const onEdit = (row: any) => {
+    setEditingId(row.id);
+    reset({
+      name: row.name ?? "",
+      description: row.description ?? "",
+      award: null,
+    });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const sendCategory = (values: CategoryForm) => {
     setSaving(true);
+
+    if (editingId) {
+      update(editingId, {
+        name: values.name,
+        description: values.description,
+      })
+        .then(() => {
+          success("Categoria atualizada.");
+          cancelEdit();
+          fetchAll();
+        })
+        .catch(() => error("Não foi possível atualizar a categoria."))
+        .finally(() => setSaving(false));
+      return;
+    }
+
     const payload = {
       name: values.name,
       description: values.description,
@@ -96,10 +159,49 @@ export const CreateAwardCategories = () => {
       .finally(() => setSaving(false));
   };
 
+  const submitBulk = () => {
+    if (parsedBulk.length === 0 || bulkSaving) return;
+    setBulkSaving(true);
+    bulkCreate({
+      categories: parsedBulk,
+      award_id: bulkAward?.id,
+    })
+      .then((r) => {
+        const created = r.data.created.length;
+        const skipped = r.data.skipped.length;
+        if (created > 0 && skipped === 0) {
+          success(
+            bulkAward
+              ? `${created} categoria(s) cadastrada(s) e vinculada(s) a "${bulkAward.name}".`
+              : `${created} categoria(s) cadastrada(s).`
+          );
+        } else if (created > 0 && skipped > 0) {
+          success(
+            `Criadas ${created} · ${skipped} já existia(m) e foram ignorada(s).`
+          );
+        } else if (skipped > 0) {
+          error(
+            `Nada cadastrado: ${skipped} categoria(s) já existia(m) no sistema com esse(s) nome(s).`
+          );
+        } else {
+          error("Nada para cadastrar. Verifique o conteúdo digitado.");
+        }
+        setBulkText("");
+        setBulkAward(null);
+        if (page !== 1) setPage(1);
+        else fetchAll();
+      })
+      .catch(() => {
+        // erro já é exibido pelo interceptor global do axios
+      })
+      .finally(() => setBulkSaving(false));
+  };
+
   const onDeleteConfirmed = () => {
     if (!confirmDelete) return;
     const row = confirmDelete;
     setConfirmDelete(null);
+    if (editingId === row.id) cancelEdit();
     const previous = data;
     setData((prev) => prev.filter((c) => c.id !== row.id));
     undoable.run({
@@ -127,7 +229,14 @@ export const CreateAwardCategories = () => {
         crumbs={[{ label: "Início", to: "/" }, { label: "Premiação", to: "/awards" }, { label: "Categorias" }]}
       />
 
-      <SectionCard title="Nova categoria">
+      <SectionCard
+        title={editingId ? "Editar categoria" : "Nova categoria"}
+        description={
+          editingId
+            ? "Altere os dados da categoria e clique em salvar."
+            : undefined
+        }
+      >
         <form onSubmit={handleSubmit(sendCategory)} noValidate>
           <FormRow>
             <FormCol md={4}>
@@ -149,21 +258,88 @@ export const CreateAwardCategories = () => {
                 placeholder="Texto curto explicando a categoria"
               />
             </FormCol>
-            <FormCol md={6}>
-              <Asynchronous
-                control={control}
-                data={awards}
-                resetField={resetField}
-                multiple={false}
-                name="award"
-                label="Vincular ao prêmio (opcional)"
-                helperText="Se selecionado, a categoria já fica associada à edição escolhida."
-                defaultValue={null}
-              />
-            </FormCol>
+            {!editingId && (
+              <FormCol md={6}>
+                <Asynchronous
+                  control={control}
+                  data={awards}
+                  resetField={resetField}
+                  multiple={false}
+                  name="award"
+                  label="Vincular ao prêmio (opcional)"
+                  helperText="Se selecionado, a categoria já fica associada à edição escolhida."
+                  defaultValue={null}
+                />
+              </FormCol>
+            )}
           </FormRow>
-          <FormActions submitLabel="Cadastrar categoria" saving={saving} />
+          <FormActions
+            submitLabel={editingId ? "Salvar alterações" : "Cadastrar categoria"}
+            saving={saving}
+            onCancel={editingId ? cancelEdit : undefined}
+            cancelLabel="Cancelar edição"
+          />
         </form>
+      </SectionCard>
+
+      <SectionCard
+        title="Cadastro em massa"
+        description="Cole várias categorias de uma vez — uma por linha. Use o formato “Nome | Descrição” se quiser incluir descrição (a descrição é opcional)."
+      >
+        <FormRow>
+          <FormCol md={12}>
+            <TextField
+              multiline
+              minRows={6}
+              fullWidth
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              placeholder={
+                "Melhor jogo do ano | O grande vencedor da edição\n" +
+                "Melhor arte | Direção visual e ilustrações\n" +
+                "Melhor designer\n" +
+                "Melhor jogo nacional"
+              }
+              helperText={
+                parsedBulk.length > 0
+                  ? `${parsedBulk.length} categoria(s) detectada(s).`
+                  : "Cole ou digite as categorias acima."
+              }
+            />
+          </FormCol>
+          <FormCol md={6}>
+            <Autocomplete
+              options={awards as AwardOption[]}
+              value={bulkAward}
+              onChange={(_, v) => setBulkAward(v)}
+              getOptionLabel={(o) => (o ? o.name : "")}
+              isOptionEqualToValue={(o, v) =>
+                Boolean(o && v && o.id === v.id)
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Vincular ao prêmio (opcional)"
+                  helperText="Se selecionado, todas as categorias do lote serão vinculadas a esse prêmio."
+                />
+              )}
+            />
+          </FormCol>
+        </FormRow>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+          <Button
+            variant="contained"
+            onClick={submitBulk}
+            disabled={parsedBulk.length === 0 || bulkSaving}
+            startIcon={<PlaylistAddRoundedIcon />}
+          >
+            {bulkSaving
+              ? "Cadastrando…"
+              : parsedBulk.length > 0
+              ? `Cadastrar ${parsedBulk.length} categoria(s)`
+              : "Cadastrar em massa"}
+          </Button>
+        </Box>
       </SectionCard>
 
       <SectionCard
@@ -192,6 +368,12 @@ export const CreateAwardCategories = () => {
             },
           ]}
           actions={[
+            {
+              icon: "edit",
+              color: "primary",
+              onClick: (r) => onEdit(r),
+              tooltip: "Editar",
+            },
             {
               icon: "delete",
               color: "warning",

@@ -47,6 +47,7 @@ import {
   useCategoryProgress,
 } from "../../../hooks/queries";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link as RouterLink } from "react-router-dom";
 import { useTableUrlState } from "../../../hooks/use-table-url-state";
 import { matchesSearch } from "../../../utils/text";
 
@@ -490,15 +491,25 @@ export const NewVotes = () => {
           { label: "Votos" },
         ]}
         actions={
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            startIcon={<AddRoundedIcon />}
-            onClick={handleOpen}
-          >
-            Cadastrar voto
-          </Button>
+          <Stack direction="row" gap={1} alignItems="center">
+            <Button
+              component={RouterLink}
+              to="/awards/create-bulk-votes"
+              variant="outlined"
+              size="large"
+            >
+              Cadastro em massa
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              startIcon={<AddRoundedIcon />}
+              onClick={handleOpen}
+            >
+              Cadastrar voto
+            </Button>
+          </Stack>
         }
       />
 

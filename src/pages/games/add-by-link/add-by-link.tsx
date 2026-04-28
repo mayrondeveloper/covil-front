@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import LinkRoundedIcon from "@mui/icons-material/LinkRounded";
-import { Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import { getDataGameByUrl } from "../../../services/game-service/game-service";
 import { useNotification } from "../../../hooks/use-notification";
 import PageLayout from "../../../components/Layout/PageLayout";
@@ -17,7 +18,7 @@ interface AddByLinkForm {
 }
 
 export const AddByLink = () => {
-  const { success, error } = useNotification();
+  const { success } = useNotification();
   const [saving, setSaving] = useState(false);
   const { handleSubmit, control, reset } = useForm<AddByLinkForm>({ defaultValues: { url: "" } });
 
@@ -29,10 +30,13 @@ export const AddByLink = () => {
           success("Jogo cadastrado com sucesso!");
           reset({ url: "" });
         })
-        .catch(() => error("Não foi possível importar o jogo dessa URL."))
+        .catch(() => {
+          // Erro HTTP já é exibido pelo interceptor global do axios
+          // (mensagem 409 inclui "Jogo já cadastrado" do backend).
+        })
         .finally(() => setSaving(false));
     },
-    [success, error, reset]
+    [success, reset]
   );
 
   return (
@@ -46,6 +50,16 @@ export const AddByLink = () => {
           { label: "Jogos", to: "/game" },
           { label: "Importar via link" },
         ]}
+        actions={
+          <Button
+            component={RouterLink}
+            to="/game/bulk-add-by-link"
+            variant="outlined"
+            size="small"
+          >
+            Importar em massa
+          </Button>
+        }
       />
 
       <SectionCard

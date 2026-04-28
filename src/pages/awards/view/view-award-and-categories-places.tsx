@@ -135,7 +135,125 @@ export const ViewAwardAndCategoryPlaces = () => {
     return m;
   }, [categoriesProgress]);
 
-  const ranking: RankingEntry[] = rankingData?.ranking ?? [];
+  const backendRanking: RankingEntry[] = rankingData?.ranking ?? [];
+
+  // Filtro por votante (chips abaixo do card de categorias).
+  const [selectedVoterIds, setSelectedVoterIds] = useState<Set<string>>(
+    new Set()
+  );
+  // Reset do filtro quando troca prêmio/categoria.
+  useEffect(() => {
+    setSelectedVoterIds(new Set());
+  }, [awardId, categoryId]);
+
+  const votersInCategory = useMemo(() => {
+    const seen = new Map<string, { id: string; name: string }>();
+    (categoryVotes as any[]).forEach((v: any) => {
+      const id = String(v.id_vote ?? v.participant?.id ?? "");
+      const name = v.participant?.name ?? "?";
+      if (id && !seen.has(id)) seen.set(id, { id, name });
+    });
+    return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [categoryVotes]);
+
+  const toggleVoter = (id: string) => {
+    setSelectedVoterIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const pointsMap = useMemo(() => {
+    const m = new Map<string, number>();
+    (scheme?.places ?? []).forEach((p: any) => m.set(String(p.value), p.points));
+    return m;
+  }, [scheme]);
+
+  // Ranking recalculado localmente quando há filtro.
+  const filteredRanking = useMemo<RankingEntry[]>(() => {
+    if (selectedVoterIds.size === 0) return backendRanking;
+    type Bucket = {
+      game: { id: string; name: string; image?: string };
+      total_points: number;
+      firsts: number;
+      seconds: number;
+      thirds: number;
+      voters: Array<{ id: string; name: string; place: string }>;
+    };
+    const byGame = new Map<string, Bucket>();
+    (categoryVotes as any[])
+      .filter((v: any) =>
+        selectedVoterIds.has(String(v.id_vote ?? v.participant?.id ?? ""))
+      )
+      .forEach((v: any) => {
+        const gameId = String(v.id_game ?? v.game?.id ?? "");
+        if (!gameId) return;
+        let b = byGame.get(gameId);
+        if (!b) {
+          b = {
+            game: {
+              id: gameId,
+              name: v.game?.name ?? "?",
+              image: v.game?.image,
+            },
+            total_points: 0,
+            firsts: 0,
+            seconds: 0,
+            thirds: 0,
+            voters: [],
+          };
+          byGame.set(gameId, b);
+        }
+        b.total_points += pointsMap.get(String(v.place)) ?? 0;
+        if (String(v.place) === "1") b.firsts += 1;
+        else if (String(v.place) === "2") b.seconds += 1;
+        else if (String(v.place) === "3") b.thirds += 1;
+        b.voters.push({
+          id: String(v.id_vote ?? v.participant?.id ?? ""),
+          name: v.participant?.name ?? "?",
+          place: String(v.place),
+        });
+      });
+
+    const sorted = Array.from(byGame.values()).sort((a, b) => {
+      if (b.total_points !== a.total_points)
+        return b.total_points - a.total_points;
+      if (b.firsts !== a.firsts) return b.firsts - a.firsts;
+      if (b.seconds !== a.seconds) return b.seconds - a.seconds;
+      if (b.thirds !== a.thirds) return b.thirds - a.thirds;
+      return a.game.name.localeCompare(b.game.name);
+    });
+
+    const sameRank = (a: Bucket, b: Bucket) =>
+      a.total_points === b.total_points &&
+      a.firsts === b.firsts &&
+      a.seconds === b.seconds &&
+      a.thirds === b.thirds;
+
+    const result: RankingEntry[] = [];
+    sorted.forEach((b, i) => {
+      const prev = sorted[i - 1];
+      const next = sorted[i + 1];
+      const position =
+        prev && sameRank(prev, b) ? result[i - 1].position : i + 1;
+      const tied =
+        (!!prev && sameRank(prev, b)) || (!!next && sameRank(next, b));
+      result.push({
+        position,
+        tied,
+        game: b.game,
+        total_points: b.total_points,
+        breakdown: { firsts: b.firsts, seconds: b.seconds, thirds: b.thirds },
+        voters: b.voters,
+      });
+    });
+    return result;
+  }, [selectedVoterIds, categoryVotes, backendRanking, pointsMap]);
+
+  const filterActive = selectedVoterIds.size > 0;
+  const ranking = filteredRanking;
   const podium = ranking.slice(0, 3);
 
   const distinctVoters = useMemo(
@@ -562,6 +680,44 @@ export const ViewAwardAndCategoryPlaces = () => {
           </Box>
         </Stack>
       </SectionCard>
+
+      {hasSelection && votersInCategory.length > 0 && (
+        <SectionCard
+          title="Filtrar por votante"
+          description={
+            filterActive
+              ? `Mostrando apenas votos de ${selectedVoterIds.size} de ${votersInCategory.length} votante(s).`
+              : "Clique nos votantes para recalcular o pódio e o ranking apenas com esses votos."
+          }
+        >
+          <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
+            {votersInCategory.map((v) => {
+              const selected = selectedVoterIds.has(v.id);
+              return (
+                <Chip
+                  key={v.id}
+                  label={v.name}
+                  clickable
+                  onClick={() => toggleVoter(v.id)}
+                  color={selected ? "secondary" : "default"}
+                  variant={selected ? "filled" : "outlined"}
+                  sx={{ fontWeight: selected ? 600 : 400 }}
+                />
+              );
+            })}
+            {filterActive && (
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setSelectedVoterIds(new Set())}
+                sx={{ textTransform: "none", ml: 0.5 }}
+              >
+                Limpar filtro
+              </Button>
+            )}
+          </Stack>
+        </SectionCard>
+      )}
       </Box>
 
       {!hasSelection && (

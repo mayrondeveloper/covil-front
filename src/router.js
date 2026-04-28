@@ -70,9 +70,17 @@ const AddByLink = lazyPage(
   () => import("./pages/games/add-by-link/add-by-link"),
   "AddByLink"
 );
+const BulkAddByLink = lazyPage(
+  () => import("./pages/games/add-by-link/bulk-add-by-link"),
+  "BulkAddByLink"
+);
 const NewVotes = lazyPage(
   () => import("./pages/votes/create/new-votes"),
   "NewVotes"
+);
+const BulkVotes = lazyPage(
+  () => import("./pages/votes/create/bulk-votes"),
+  "BulkVotes"
 );
 const LoginPage = lazyPage(
   () => import("./pages/login/login-page"),
@@ -131,11 +139,13 @@ export const router = createBrowserRouter([
   { path: "/game/create-mechanism", element: guarded(<CreateMechanisms />) },
   { path: "/game/create-designer", element: guarded(<CreateDesigners />) },
   { path: "/game/add-by-link", element: guarded(<AddByLink />) },
+  { path: "/game/bulk-add-by-link", element: guarded(<BulkAddByLink />) },
   { path: "/awards", element: guarded(<DragaoDeOuro />) },
   { path: "/awards/create-awards", element: guarded(<CreateAwards />) },
   { path: "/awards/edit-awards/:id", element: guarded(<CreateAwards />) },
   { path: "/awards/create-category", element: guarded(<CreateAwardCategories />) },
   { path: "/awards/create-new-votes", element: guarded(<NewVotes />) },
+  { path: "/awards/create-bulk-votes", element: guarded(<BulkVotes />) },
   { path: "/awards/create-participants", element: guarded(<CreateAwardParticipants />) },
   { path: "/awards/winners", element: guarded(<WinnersOverview />) },
   { path: "/awards/:id/announcement", element: guarded(<Announcement />) },

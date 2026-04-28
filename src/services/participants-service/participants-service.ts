@@ -10,5 +10,24 @@ export const fetch = () => fetchPage({ limit: MAX_LIMIT }).then(unwrap);
 export const create = (data: Partial<Participant>) =>
   axiosInstance.post<Participant>(`/participants`, data);
 
+export const update = (id: Id, data: Partial<Participant>) =>
+  axiosInstance.patch<Participant>(`/participants/${id}`, data);
+
+export interface BulkParticipantItem {
+  name: string;
+  description?: string;
+}
+
+export interface BulkCreateResult {
+  created: Participant[];
+  skipped: string[];
+}
+
+export const bulkCreate = (data: {
+  participants: BulkParticipantItem[];
+  award_ids?: Id[];
+}) =>
+  axiosInstance.post<BulkCreateResult>(`/participants/bulk`, data);
+
 export const remove = (id: Id) =>
   axiosInstance.delete<void>(`/participants/${id}`);
