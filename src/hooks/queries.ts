@@ -9,6 +9,7 @@ import * as mechanisms from "../services/mechanisms-service/mechanisms-service";
 import * as awardCategories from "../services/awards-categories-service/awards-categories-service";
 import * as participants from "../services/participants-service/participants-service";
 import * as votes from "../services/votes/votes-service";
+import * as settings from "../services/settings-service/settings-service";
 import { Id } from "../services/types";
 
 export const qk = {
@@ -28,6 +29,7 @@ export const qk = {
   awardCategoriesByAward: (award: Id) => ["award-categories", { award }] as const,
   participants: ["participants"] as const,
   votes: ["votes"] as const,
+  settings: ["settings"] as const,
 };
 
 export const useGames = () =>
@@ -212,3 +214,8 @@ export const useParticipants = () =>
   useQuery(qk.participants, () => participants.fetch().then((r) => r.data));
 export const useVotes = () =>
   useQuery(qk.votes, () => votes.fetch().then((r) => r.data));
+
+export const useSettings = () =>
+  useQuery(qk.settings, () => settings.fetchAll().then((r) => r.data), {
+    staleTime: 5 * 60_000,
+  });

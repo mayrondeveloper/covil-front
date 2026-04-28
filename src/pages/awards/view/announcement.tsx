@@ -18,6 +18,7 @@ import {
   useAward,
   useAwardCategoriesByAward,
   useRanking,
+  useSettings,
 } from "../../../hooks/queries";
 import { useNotification } from "../../../hooks/use-notification";
 import { Id, RankingEntry } from "../../../services/types";
@@ -186,6 +187,8 @@ export const Announcement = () => {
   const { success } = useNotification();
   const { data: award } = useAward(id);
   const { data: categories = [], isLoading: loadingCats } = useAwardCategoriesByAward(id);
+  const { data: settings } = useSettings();
+  const customIcon = settings?.drawer_icon_url || "";
 
   useEffect(() => {
     const tag = document.createElement("style");
@@ -281,11 +284,23 @@ export const Announcement = () => {
                 borderRadius: "50%",
                 display: "grid",
                 placeItems: "center",
-                background: "linear-gradient(135deg, #B45309 0%, #F59E0B 100%)",
+                background: customIcon
+                  ? "transparent"
+                  : "linear-gradient(135deg, #B45309 0%, #F59E0B 100%)",
                 color: "#fff",
+                overflow: "hidden",
               }}
             >
-              <EmojiEventsRoundedIcon sx={{ fontSize: 36 }} />
+              {customIcon ? (
+                <Box
+                  component="img"
+                  src={customIcon}
+                  alt=""
+                  sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                />
+              ) : (
+                <EmojiEventsRoundedIcon sx={{ fontSize: 36 }} />
+              )}
             </Box>,
             <Typography
               key="eyebrow"
