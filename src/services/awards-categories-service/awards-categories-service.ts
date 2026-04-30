@@ -20,7 +20,14 @@ export const create = (
 
 export const update = (
   id: Id,
-  data: { name?: string; description?: string },
+  data: {
+    name?: string;
+    description?: string;
+    background_image?: string | null;
+    background_image_first?: string | null;
+    background_image_second?: string | null;
+    background_image_third?: string | null;
+  },
 ) => axiosInstance.patch<AwardCategory>(`/award-categories/${id}`, data);
 
 export interface BulkCategoryItem {

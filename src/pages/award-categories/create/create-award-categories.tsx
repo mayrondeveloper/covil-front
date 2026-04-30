@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   Autocomplete,
   Box,
@@ -28,6 +28,7 @@ import { FormRow, FormCol } from "../../../components/Form/Field/FormRow";
 import { FormActions } from "../../../components/Form/Field/FormActions";
 import { useNotification } from "../../../hooks/use-notification";
 import Asynchronous from "../../../components/Form/Input/asynchronous/asynchronous";
+import ImageUpload from "../../../components/Form/Field/ImageUpload";
 import { useAwards } from "../../../hooks/queries";
 
 const parseBulkLines = (raw: string): { name: string; description: string }[] =>
@@ -50,11 +51,17 @@ type AwardOption = { id: string; name: string } | null;
 interface CategoryForm {
   name: string;
   description: string;
+  background_image: string;
   award: AwardOption;
   [k: string]: unknown;
 }
 
-const defaultValues: CategoryForm = { name: "", description: "", award: null };
+const defaultValues: CategoryForm = {
+  name: "",
+  description: "",
+  background_image: "",
+  award: null,
+};
 
 export const CreateAwardCategories = () => {
   const [data, setData] = useState<any[]>([]);
@@ -114,6 +121,7 @@ export const CreateAwardCategories = () => {
     reset({
       name: row.name ?? "",
       description: row.description ?? "",
+      background_image: row.background_image ?? "",
       award: null,
     });
     if (typeof window !== "undefined") {
@@ -128,6 +136,7 @@ export const CreateAwardCategories = () => {
       update(editingId, {
         name: values.name,
         description: values.description,
+        background_image: values.background_image || null,
       })
         .then(() => {
           success("Categoria atualizada.");
@@ -142,6 +151,7 @@ export const CreateAwardCategories = () => {
     const payload = {
       name: values.name,
       description: values.description,
+      background_image: values.background_image || null,
       award_id: values.award?.id,
     };
     create(payload)
@@ -256,6 +266,23 @@ export const CreateAwardCategories = () => {
                 label="Descrição"
                 rules={{ required: true }}
                 placeholder="Texto curto explicando a categoria"
+              />
+            </FormCol>
+            <FormCol md={12}>
+              <Controller
+                name="background_image"
+                control={control}
+                render={({ field }) => (
+                  <ImageUpload
+                    value={(field.value as string) ?? ""}
+                    onChange={field.onChange}
+                    folder="award-categories"
+                    label="Imagem de fundo do pódio"
+                    helperText="Opcional. Imagem exibida atrás do pódio na página de vencedores. Máx 5MB."
+                    height={180}
+                    deleteOnRemove
+                  />
+                )}
               />
             </FormCol>
             {!editingId && (

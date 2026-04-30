@@ -1,6 +1,11 @@
 import { axiosInstance } from "../axios/axios";
 
-export type UploadFolder = "games" | "participants" | "awards" | "misc";
+export type UploadFolder =
+  | "games"
+  | "participants"
+  | "awards"
+  | "award-categories"
+  | "misc";
 
 export interface UploadResponse {
   url: string;

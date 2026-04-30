@@ -5,6 +5,16 @@ import { POSITION_STYLE } from "../WinnerCard/WinnerCard";
 
 interface PodiumProps {
   entries: RankingEntry[];
+  /** Multiplica todas as dimensões. 1 = padrão; 1.6 = uso em fullscreen. */
+  scale?: number;
+  /** Em fundos com imagem, ativa text-shadow para preservar leitura. */
+  onImageBackground?: boolean;
+  /**
+   * Quais posições renderizar e em que ordem visual. Default: pódio
+   * completo `[2, 1, 3]` (esquerda → centro → direita). Use `[1]` para
+   * um pódio individual só com o vencedor.
+   */
+  positions?: Array<1 | 2 | 3>;
 }
 
 interface StepConfig {
@@ -80,9 +90,11 @@ const GameImage = ({ entry, size }: GameImageProps) => {
 interface StepProps {
   config: StepConfig;
   entries: RankingEntry[];
+  scale: number;
+  onImageBackground: boolean;
 }
 
-const Step = ({ config, entries }: StepProps) => {
+const Step = ({ config, entries, scale, onImageBackground }: StepProps) => {
   const theme = useTheme();
   const style = POSITION_STYLE[config.position];
   const hasEntries = entries.length > 0;
@@ -92,6 +104,23 @@ const Step = ({ config, entries }: StepProps) => {
         .map((e) => `${e.game.name}, ${e.total_points} ${e.total_points === 1 ? "ponto" : "pontos"}`)
         .join("; ")}`
     : `${config.position}º lugar: sem voto`;
+
+  const heightDesktop = Math.round(config.heightDesktop * scale);
+  const heightMobile = Math.round(config.heightMobile * scale);
+  const imageDesktop = Math.round(config.imageDesktop * scale);
+  const imageMobile = Math.round(config.imageMobile * scale);
+
+  const pillSx = onImageBackground
+    ? {
+        bgcolor: "rgba(250,247,242,0.92)",
+        borderRadius: 2,
+        px: 1.5,
+        py: 0.75,
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.2)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+      }
+    : undefined;
 
   return (
     <Box
@@ -112,18 +141,18 @@ const Step = ({ config, entries }: StepProps) => {
         justifyContent="center"
         alignItems="flex-end"
         flexWrap="wrap"
-        sx={{ mb: 1, minHeight: { xs: config.imageMobile, md: config.imageDesktop } }}
+        sx={{ mb: 1, minHeight: { xs: imageMobile, md: imageDesktop } }}
       >
         {hasEntries ? (
           entries.map((entry) => {
-            const scale = entries.length > 1 ? 0.65 : 1;
+            const tieScale = entries.length > 1 ? 0.65 : 1;
             return (
               <GameImage
                 key={entry.game.id}
                 entry={entry}
                 size={{
-                  xs: Math.round(config.imageMobile * scale),
-                  md: Math.round(config.imageDesktop * scale),
+                  xs: Math.round(imageMobile * tieScale),
+                  md: Math.round(imageDesktop * tieScale),
                 }}
               />
             );
@@ -132,8 +161,8 @@ const Step = ({ config, entries }: StepProps) => {
           <Box
             aria-hidden
             sx={{
-              width: { xs: config.imageMobile, md: config.imageDesktop },
-              height: { xs: config.imageMobile, md: config.imageDesktop },
+              width: { xs: imageMobile, md: imageDesktop },
+              height: { xs: imageMobile, md: imageDesktop },
               borderRadius: 2,
               border: `2px dashed ${alpha(theme.palette.text.disabled, 0.5)}`,
               bgcolor: alpha(theme.palette.text.disabled, 0.06),
@@ -145,7 +174,7 @@ const Step = ({ config, entries }: StepProps) => {
       <Box
         sx={{
           width: "100%",
-          height: { xs: config.heightMobile, md: config.heightDesktop },
+          height: { xs: heightMobile, md: heightDesktop },
           background: hasEntries
             ? style.bg
             : `linear-gradient(135deg, ${alpha(theme.palette.text.disabled, 0.35)} 0%, ${alpha(
@@ -166,7 +195,10 @@ const Step = ({ config, entries }: StepProps) => {
           sx={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 700,
-            fontSize: { xs: "1.75rem", md: "2.5rem" },
+            fontSize: {
+              xs: `${1.75 * scale}rem`,
+              md: `${2.5 * scale}rem`,
+            },
             lineHeight: 1,
             opacity: hasEntries ? 0.95 : 0.7,
           }}
@@ -181,14 +213,28 @@ const Step = ({ config, entries }: StepProps) => {
             {entries.map((entry) => {
               const isFirst = config.position === 1;
               return (
-                <Box key={entry.game.id} sx={{ width: "100%" }}>
+                <Box
+                  key={entry.game.id}
+                  sx={{
+                    width: pillSx ? "auto" : "100%",
+                    maxWidth: "100%",
+                    display: pillSx ? "inline-block" : "block",
+                    ...pillSx,
+                  }}
+                >
                   <Typography
                     sx={{
                       fontFamily: "'Playfair Display', serif",
                       fontWeight: isFirst ? 700 : 600,
                       fontSize: isFirst
-                        ? { xs: "1.2rem", md: "1.4rem" }
-                        : { xs: "1.05rem", md: "1.2rem" },
+                        ? {
+                            xs: `${1.2 * scale}rem`,
+                            md: `${1.4 * scale}rem`,
+                          }
+                        : {
+                            xs: `${1.05 * scale}rem`,
+                            md: `${1.2 * scale}rem`,
+                          },
                       lineHeight: 1.2,
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
@@ -203,7 +249,9 @@ const Step = ({ config, entries }: StepProps) => {
                     sx={{
                       color: "text.secondary",
                       fontVariantNumeric: "tabular-nums",
-                      fontSize: isFirst ? "0.85rem" : undefined,
+                      fontSize: isFirst
+                        ? `${0.85 * scale}rem`
+                        : `${0.75 * scale}rem`,
                     }}
                   >
                     {entry.total_points} {entry.total_points === 1 ? "pt" : "pts"}
@@ -240,21 +288,42 @@ const Step = ({ config, entries }: StepProps) => {
   );
 };
 
-export const Podium = ({ entries }: PodiumProps) => {
+export const Podium = ({
+  entries,
+  scale = 1,
+  onImageBackground = false,
+  positions,
+}: PodiumProps) => {
   const grouped = groupByPosition(entries);
+  // Se `positions` foi informado, mantemos a ordem que o caller passou
+  // (assim `[1]` dá apenas o degrau central, `[1, 2]` mostra 1 → 2, etc).
+  const visibleSteps = positions
+    ? positions
+        .map((p) => STEPS.find((s) => s.position === p))
+        .filter((s): s is StepConfig => Boolean(s))
+    : STEPS;
+  // Pódio completo precisa de 720; um pódio individual cabe em ~280px.
+  const baseMax = visibleSteps.length === 1 ? 280 : 720;
   return (
     <Stack
       direction="row"
-      gap={{ xs: 1, md: 2 }}
+      gap={{ xs: 1, md: 2 * scale }}
       alignItems="flex-end"
       justifyContent="center"
-      sx={{ width: "100%", maxWidth: 720, mx: "auto", pt: { xs: 5, md: 6 } }}
+      sx={{
+        width: "100%",
+        maxWidth: baseMax * scale,
+        mx: "auto",
+        pt: { xs: 5 * scale, md: 6 * scale },
+      }}
     >
-      {STEPS.map((step) => (
+      {visibleSteps.map((step) => (
         <Step
           key={step.position}
           config={step}
           entries={grouped.get(step.position) ?? []}
+          scale={scale}
+          onImageBackground={onImageBackground}
         />
       ))}
     </Stack>

@@ -28,7 +28,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import { useSearchParams } from "react-router-dom";
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import {
   useAwards,
   useAwardCategoriesByAward,
@@ -45,6 +46,61 @@ import { GenericTable } from "../../../components/Table/GenericTable";
 
 
 const csvField = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+// LocalStorage helpers — preservam seleções e filtro entre visitas à página.
+const VOTER_FILTER_KEY = "covil.ranking.voterFilter";
+const LAST_SELECTION_KEY = "covil.ranking.lastSelection";
+
+const readVoterFilter = (award: string, category: string): string[] => {
+  try {
+    const raw = localStorage.getItem(VOTER_FILTER_KEY);
+    if (!raw) return [];
+    const map = JSON.parse(raw) as Record<string, string[]>;
+    return map[`${award}::${category}`] ?? [];
+  } catch {
+    return [];
+  }
+};
+
+const saveVoterFilter = (
+  award: string,
+  category: string,
+  ids: string[],
+): void => {
+  try {
+    const raw = localStorage.getItem(VOTER_FILTER_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
+    const key = `${award}::${category}`;
+    if (ids.length === 0) delete map[key];
+    else map[key] = ids;
+    localStorage.setItem(VOTER_FILTER_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore quota / privacy-mode errors */
+  }
+};
+
+interface LastSelection {
+  awardId?: string;
+  categoryId?: string;
+}
+
+const readLastSelection = (): LastSelection => {
+  try {
+    const raw = localStorage.getItem(LAST_SELECTION_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as LastSelection;
+  } catch {
+    return {};
+  }
+};
+
+const saveLastSelection = (sel: LastSelection): void => {
+  try {
+    localStorage.setItem(LAST_SELECTION_KEY, JSON.stringify(sel));
+  } catch {
+    /* ignore */
+  }
+};
 
 const toCsvSummary = (ranking: RankingEntry[]) => {
   const header = [
@@ -141,9 +197,13 @@ export const ViewAwardAndCategoryPlaces = () => {
   const [selectedVoterIds, setSelectedVoterIds] = useState<Set<string>>(
     new Set()
   );
-  // Reset do filtro quando troca prêmio/categoria.
+  // Restaura filtro salvo (por prêmio+categoria) ao entrar/trocar a seleção.
   useEffect(() => {
-    setSelectedVoterIds(new Set());
+    if (!awardId || !categoryId) {
+      setSelectedVoterIds(new Set());
+      return;
+    }
+    setSelectedVoterIds(new Set(readVoterFilter(awardId, categoryId)));
   }, [awardId, categoryId]);
 
   const votersInCategory = useMemo(() => {
@@ -161,6 +221,9 @@ export const ViewAwardAndCategoryPlaces = () => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      if (awardId && categoryId) {
+        saveVoterFilter(awardId, categoryId, Array.from(next));
+      }
       return next;
     });
   };
@@ -268,18 +331,24 @@ export const ViewAwardAndCategoryPlaces = () => {
   const expectedVoters: number = (award as any)?.participants?.length ?? 0;
   const totalPlaces = scheme?.places.length ?? 3;
 
-  // Auto-seleciona prêmio mais recente se nenhum estiver na URL.
+  // Auto-seleciona prêmio: prefere o salvo no localStorage, com fallback para o mais recente.
   useEffect(() => {
     if (awardId || awards.length === 0) return;
-    const latest = [...awards].sort((a: any, b: any) => {
-      const ya = Number(a.year) || 0;
-      const yb = Number(b.year) || 0;
-      if (yb !== ya) return yb - ya;
-      return String(b.id).localeCompare(String(a.id));
-    })[0];
-    if (latest) {
+    const last = readLastSelection();
+    const saved =
+      last.awardId &&
+      (awards as any[]).find((a) => String(a.id) === last.awardId);
+    const target =
+      saved ??
+      [...awards].sort((a: any, b: any) => {
+        const ya = Number(a.year) || 0;
+        const yb = Number(b.year) || 0;
+        if (yb !== ya) return yb - ya;
+        return String(b.id).localeCompare(String(a.id));
+      })[0];
+    if (target) {
       const next = new URLSearchParams(sp);
-      next.set("award", String(latest.id));
+      next.set("award", String((target as any).id));
       setSp(next, { replace: true });
     }
   }, [awards, awardId, sp, setSp]);
@@ -300,6 +369,36 @@ export const ViewAwardAndCategoryPlaces = () => {
       setSp(next, { replace: true });
     }
   }, [awardId, awardCategories, categoriesLoading, categoryId, sp, setSp]);
+
+  // Restaura categoria salva quando há prêmio mas nenhuma categoria na URL.
+  useEffect(() => {
+    if (
+      categoryId ||
+      !awardId ||
+      awardCategories.length === 0 ||
+      categoriesLoading
+    )
+      return;
+    const last = readLastSelection();
+    if (
+      last.awardId === awardId &&
+      last.categoryId &&
+      awardCategories.some((c: any) => c.id === last.categoryId)
+    ) {
+      const next = new URLSearchParams(sp);
+      next.set("category", String(last.categoryId));
+      setSp(next, { replace: true });
+    }
+  }, [awardId, awardCategories, categoriesLoading, categoryId, sp, setSp]);
+
+  // Persiste a seleção atual (prêmio/categoria) no localStorage.
+  useEffect(() => {
+    if (!awardId) return;
+    saveLastSelection({
+      awardId,
+      categoryId: categoryId || undefined,
+    });
+  }, [awardId, categoryId]);
 
   const setAward = (value: { id: string | number } | null) => {
     const next = new URLSearchParams(sp);
@@ -709,7 +808,12 @@ export const ViewAwardAndCategoryPlaces = () => {
               <Button
                 size="small"
                 variant="text"
-                onClick={() => setSelectedVoterIds(new Set())}
+                onClick={() => {
+                  setSelectedVoterIds(new Set());
+                  if (awardId && categoryId) {
+                    saveVoterFilter(awardId, categoryId, []);
+                  }
+                }}
                 sx={{ textTransform: "none", ml: 0.5 }}
               >
                 Limpar filtro
@@ -815,7 +919,24 @@ export const ViewAwardAndCategoryPlaces = () => {
           </SectionCard>
 
           {/* Pódio */}
-          <SectionCard title="Pódio">
+          <SectionCard
+            title="Pódio"
+            actions={
+              awardId && categoryId ? (
+                <Button
+                  component={RouterLink}
+                  to={`/awards/podium?award=${encodeURIComponent(
+                    String(awardId)
+                  )}&category=${encodeURIComponent(String(categoryId))}`}
+                  variant="outlined"
+                  size="small"
+                  startIcon={<WorkspacePremiumRoundedIcon />}
+                >
+                  Ver no pódio
+                </Button>
+              ) : undefined
+            }
+          >
             {loading && ranking.length === 0 ? (
               <Stack direction={{ xs: "column", md: "row" }} gap={2}>
                 {[0, 1, 2].map((i) => (

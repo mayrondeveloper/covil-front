@@ -66,7 +66,13 @@ export interface RankingEntry {
 }
 
 export interface RankingResponse {
-  category?: BaseEntity & { name: string };
+  category?: BaseEntity & {
+    name: string;
+    background_image?: string | null;
+    background_image_first?: string | null;
+    background_image_second?: string | null;
+    background_image_third?: string | null;
+  };
   ranking: RankingEntry[];
 }
 
