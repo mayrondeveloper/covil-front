@@ -11,6 +11,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { theme } from "./theme";
 import { AuthProvider } from "./contexts/AuthContext";
+import { Analytics } from "@vercel/analytics/react"
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +41,7 @@ root.render(
           theme="light"
           newestOnTop
         />
+        <Analytics />
       </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>
